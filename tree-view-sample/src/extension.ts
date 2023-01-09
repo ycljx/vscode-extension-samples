@@ -26,7 +26,7 @@ const handleEditEntry = async (node: Dependency) => {
 
 	if (result) {
 		linkedDeps[node.label] = {
-			from: result,
+			from: result.endsWith('/') ? result : `${result}/`,
 		};
 
 		if (!isExist) await fs.ensureFile(linkedDepsPath);
