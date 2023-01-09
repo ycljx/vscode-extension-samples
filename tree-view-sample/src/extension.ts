@@ -9,10 +9,7 @@ let NEXT_TERM_ID = 1;
 const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
 const handleDebugEntry = async (node: Dependency) => {
-	const terminal = vscode.window.createTerminal({
-		name: `Ext Terminal #${NEXT_TERM_ID++}`,
-		hideFromUser: true,
-	});
+	const terminal = vscode.window.createTerminal(`Ext Terminal #${NEXT_TERM_ID++}`);
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 };
 
