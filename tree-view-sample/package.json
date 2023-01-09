@@ -1,14 +1,14 @@
 {
-	"name": "custom-view-samples",
-	"displayName": "Custom view Samples",
-	"description": "Samples for VSCode's view API",
+	"name": "orca-preview-debug",
+	"displayName": "Orca Preview Debug",
+	"description": "Orca预览引擎的调试插件",
 	"version": "0.0.1",
-	"publisher": "vscode-samples",
+	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-extension-samples"
+		"url": "https://github.com/ycljx/vscode-extension-samples"
 	},
 	"engines": {
 		"vscode": "^1.74.0"
@@ -45,22 +45,6 @@
 					"id": "jsonOutline",
 					"name": "Json Outline",
 					"when": "jsonOutlineEnabled"
-				},
-				{
-					"id": "ftpExplorer",
-					"name": "FTP Explorer"
-				},
-				{
-					"id": "fileExplorer",
-					"name": "File Explorer"
-				},
-				{
-					"id": "testView",
-					"name": "Test View"
-				},
-				{
-					"id": "testViewDragAndDrop",
-					"name": "Test View Drag and Drop"
 				}
 			]
 		},
@@ -90,22 +74,6 @@
 				"title": "Delete"
 			},
 			{
-				"command": "ftpExplorer.refresh",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "ftpExplorer.openFtpResource",
-				"title": "Open FTP Resource"
-			},
-			{
-				"command": "ftpExplorer.revealResource",
-				"title": "Reveal in FTP View"
-			},
-			{
 				"command": "jsonOutline.refresh",
 				"title": "Refresh",
 				"icon": {
@@ -124,34 +92,9 @@
 			{
 				"command": "jsonOutline.renameNode",
 				"title": "Rename"
-			},
-			{
-				"command": "fileExplorer.refreshFile",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "fileExplorer.openFile",
-				"title": "Open File"
-			},
-			{
-				"command": "testView.reveal",
-				"title": "Test View: Reveal"
-			},
-			{
-				"command": "testView.changeTitle",
-				"title": "Test View: Change Title"
 			}
 		],
 		"menus": {
-			"commandPalette": [
-				{
-					"command": "ftpExplorer.revealResource"
-				}
-			],
 			"view/title": [
 				{
 					"command": "nodeDependencies.refreshEntry",
@@ -169,11 +112,6 @@
 				{
 					"command": "jsonOutline.refresh",
 					"when": "view == jsonOutline",
-					"group": "navigation"
-				},
-				{
-					"command": "ftpExplorer.refresh",
-					"when": "view == ftpExplorer",
 					"group": "navigation"
 				}
 			],
@@ -194,11 +132,6 @@
 				{
 					"command": "jsonOutline.refreshNode",
 					"when": "view == jsonOutline",
-					"group": "inline"
-				},
-				{
-					"command": "fileExplorer.refreshFile",
-					"when": "view == fileExplorer && viewItem == file",
 					"group": "inline"
 				}
 			]
