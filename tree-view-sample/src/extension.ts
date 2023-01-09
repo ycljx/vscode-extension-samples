@@ -5,42 +5,15 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
 
+let NEXT_TERM_ID = 1;
 const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
-function ensureTerminalExists(): boolean {
-	if ((<any>vscode.window).terminals.length === 0) {
-		vscode.window.showErrorMessage('No active terminals');
-		return false;
-	}
-	return true;
-}
-
-function selectTerminal(): Thenable<vscode.Terminal | undefined> {
-	interface TerminalQuickPickItem extends vscode.QuickPickItem {
-		terminal: vscode.Terminal;
-	}
-	const terminals = <vscode.Terminal[]>(<any>vscode.window).terminals;
-	const items: TerminalQuickPickItem[] = terminals.map((t) => {
-		return {
-			label: `name: ${t.name}`,
-			terminal: t,
-		};
-	});
-	return vscode.window.showQuickPick(items).then((item) => {
-		return item ? item.terminal : undefined;
-	});
-}
-
 const handleDebugEntry = async (node: Dependency) => {
-	if (ensureTerminalExists()) {
-		const terminal = await selectTerminal();
-		if (terminal) {
-			terminal.show();
-			terminal.sendText("echo 'Hello world!'");
-		} else {
-			vscode.window.showErrorMessage('No selected terminal');
-		}
-	}
+	const terminal = vscode.window.createTerminal({
+		name: `Ext Terminal #${NEXT_TERM_ID++}`,
+		hideFromUser: true,
+	});
+	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 };
 
 const handleEditEntry = async (node: Dependency) => {

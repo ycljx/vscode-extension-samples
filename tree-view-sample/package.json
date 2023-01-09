@@ -109,7 +109,8 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint \"src/**/*.ts\""
+		"lint": "eslint \"src/**/*.ts\"",
+		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.1.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.0",
