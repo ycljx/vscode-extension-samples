@@ -63,6 +63,14 @@
 				}
 			},
 			{
+				"command": "nodeDependencies.debugEntry",
+				"title": "Debug",
+				"icon": {
+					"light": "resources/light/edit.svg",
+					"dark": "resources/dark/edit.svg"
+				}
+			},
+			{
 				"command": "nodeDependencies.deleteEntry",
 				"title": "Delete"
 			}
@@ -82,6 +90,11 @@
 			"view/item/context": [
 				{
 					"command": "nodeDependencies.editEntry",
+					"when": "view == nodeDependencies && viewItem == dependency",
+					"group": "inline"
+				},
+				{
+					"command": "nodeDependencies.debugEntry",
 					"when": "view == nodeDependencies && viewItem == dependency",
 					"group": "inline"
 				},
