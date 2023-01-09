@@ -1,8 +1,11 @@
 'use strict';
 
 import * as vscode from 'vscode';
-
+import * as os from 'os';
+import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
+
+const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
 export function activate(context: vscode.ExtensionContext) {
 	const rootPath =
@@ -28,16 +31,23 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand(
 		'nodeDependencies.editEntry',
 		async (node: Dependency) => {
+			let linkedDeps: Record<string, any> = {};
+			const isExist = await fs.pathExists(linkedDepsPath);
+			if (isExist) linkedDeps = await fs.readJson(linkedDepsPath);
+
 			const result = await vscode.window.showInputBox({
-				value: 'abcdef',
+				value: linkedDeps[node.label]?.from || '',
 				valueSelection: [2, 4],
-				placeHolder: 'For example: fedcba. But not: 123',
-				validateInput: (text) => {
-					vscode.window.showInformationMessage(`Validating: ${text}`);
-					return text === '123' ? 'Not 123!' : null;
-				},
+				placeHolder: '请输入待调试组件根目录的绝对路径'
 			});
-			vscode.window.showInformationMessage(`Got: ${result}`);
+			linkedDeps[node.label] = {
+        from: result,
+      };
+
+			if (!isExist) await fs.ensureFile(linkedDepsPath);
+			await fs.writeJson(linkedDepsPath, linkedDeps, { spaces: 2 });
+
+			vscode.window.showInformationMessage(`${node.label}已绑定本地调试路径`);
 		}
 	);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) =>
