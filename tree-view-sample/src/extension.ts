@@ -6,22 +6,29 @@ import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
 
 let processId: number | undefined;
-let processId1: number | undefined;
+// let processId1: number | undefined;
 const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
 const handleDebugEntry = async (node: Dependency) => {
-	if (processId === undefined && processId1 === undefined) {
-		const terminal = vscode.window.createTerminal('开始监听组件变化');
+	if (processId === undefined) {
+		const terminal = vscode.window.createTerminal('监听组件变化');
 		processId = await terminal.processId;
 		terminal.show();
 		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 
-		const terminal1 = vscode.window.createTerminal('开始启动预览引擎');
-		processId1 = await terminal1.processId;
-		terminal1.show();
-		terminal1.sendText('npm start');
+		vscode.window.onDidCloseTerminal(async (terminal) => {
+			const curProcessId = await terminal.processId;
+			if (processId === curProcessId) {
+				processId = undefined;
+			}
+		});
+
+		// const terminal1 = vscode.window.createTerminal('开始启动预览引擎');
+		// processId1 = await terminal1.processId;
+		// terminal1.show();
+		// terminal1.sendText('npm start');
 	} else {
-		vscode.window.showWarningMessage('已存在调试程序，请先关闭它们');
+		vscode.window.showWarningMessage('已存在调试程序，请先关闭');
 	}
 };
 
