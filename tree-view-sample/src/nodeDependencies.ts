@@ -3,12 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
+	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> =
+		new vscode.EventEmitter<Dependency | undefined | void>();
+	readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> =
+		this._onDidChangeTreeData.event;
 
-	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> = new vscode.EventEmitter<Dependency | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | void> = this._onDidChangeTreeData.event;
-
-	constructor(private workspaceRoot: string | undefined) {
-	}
+	constructor(private workspaceRoot: string | undefined) {}
 
 	refresh(): void {
 		this._onDidChangeTreeData.fire();
@@ -25,7 +25,16 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		}
 
 		if (element) {
-			return Promise.resolve(this.getDepsInPackageJson(path.join(this.workspaceRoot, 'node_modules', element.label, 'package.json')));
+			return Promise.resolve(
+				this.getDepsInPackageJson(
+					path.join(
+						this.workspaceRoot,
+						'node_modules',
+						element.label,
+						'package.json'
+					)
+				)
+			);
 		} else {
 			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
 			if (this.pathExists(packageJsonPath)) {
@@ -35,7 +44,6 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 				return Promise.resolve([]);
 			}
 		}
-
 	}
 
 	/**
@@ -48,23 +56,34 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 			const toDep = (moduleName: string, version: string): Dependency => {
 				if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
-					return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
+					return new Dependency(
+						moduleName,
+						version,
+						vscode.TreeItemCollapsibleState.Collapsed
+					);
 				} else {
-					return new Dependency(moduleName, version, vscode.TreeItemCollapsibleState.None, {
-						command: 'extension.openPackageOnNpm',
-						title: '',
-						arguments: [moduleName]
-					});
+					return new Dependency(
+						moduleName,
+						version,
+						vscode.TreeItemCollapsibleState.None,
+						{
+							command: 'extension.openPackageOnNpm',
+							title: '',
+							arguments: [moduleName],
+						}
+					);
 				}
 			};
 
 			const deps = packageJson.dependencies
-				? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
+				? Object.keys(packageJson.dependencies).map((dep) =>
+						toDep(dep, packageJson.dependencies[dep])
+				  )
 				: [];
-			const devDeps = packageJson.devDependencies
-				? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-				: [];
-			return deps.concat(devDeps);
+			// const devDeps = packageJson.devDependencies
+			// 	? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
+			// 	: [];
+			return deps;
 		} else {
 			return [];
 		}
@@ -82,7 +101,6 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 }
 
 export class Dependency extends vscode.TreeItem {
-
 	constructor(
 		public readonly label: string,
 		private readonly version: string,
@@ -97,7 +115,7 @@ export class Dependency extends vscode.TreeItem {
 
 	iconPath = {
 		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
+		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg'),
 	};
 
 	contextValue = 'dependency';
