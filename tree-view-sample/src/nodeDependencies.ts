@@ -24,26 +24,23 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			return Promise.resolve([]);
 		}
 
+		const packageLockJsonPath = path.join(this.workspaceRoot, 'package-lock.json');
+
 		if (element) {
-			return Promise.resolve(
-				this.getDepsInPackageJson(
-					path.join(
-						this.workspaceRoot,
-						'node_modules',
-						element.label,
-						'package.json'
-					),
-					path.join(
-						this.workspaceRoot,
-						'node_modules',
-						element.label,
-						'package-lock.json'
-					)
-				)
-			);
+			// return Promise.resolve(
+			// 	this.getDepsInPackageJson(
+			// 		path.join(
+			// 			this.workspaceRoot,
+			// 			'node_modules',
+			// 			element.label,
+			// 			'package.json'
+			// 		),
+			// 		packageLockJsonPath
+			// 	)
+			// );
+			return Promise.resolve([]);
 		} else {
 			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
-			const packageLockJsonPath = path.join(this.workspaceRoot, 'package-lock.json');
 			if (this.pathExists(packageJsonPath)) {
 				return Promise.resolve(
 					this.getDepsInPackageJson(packageJsonPath, packageLockJsonPath)
