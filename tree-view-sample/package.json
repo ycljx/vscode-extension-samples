@@ -56,7 +56,7 @@
 			},
 			{
 				"command": "nodeDependencies.editEntry",
-				"title": "Edit",
+				"title": "绑定(link)",
 				"icon": {
 					"light": "resources/light/edit.svg",
 					"dark": "resources/dark/edit.svg"
@@ -64,7 +64,7 @@
 			},
 			{
 				"command": "nodeDependencies.debugEntry",
-				"title": "Debug",
+				"title": "调试(debug)",
 				"icon": {
 					"light": "resources/light/edit.svg",
 					"dark": "resources/dark/edit.svg"

@@ -5,12 +5,13 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
 
-let NEXT_TERM_ID = 1;
 const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
 const handleDebugEntry = async (node: Dependency) => {
-	const terminal = vscode.window.createTerminal(`Ext Terminal #${NEXT_TERM_ID++}`);
+	const terminal = vscode.window.createTerminal('开始监听组件变化');
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
+	const terminal1 = vscode.window.createTerminal('开始启动预览引擎');
+	terminal1.sendText('npm start');
 };
 
 const handleEditEntry = async (node: Dependency) => {
