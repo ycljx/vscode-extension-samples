@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
@@ -32,13 +32,22 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 						'node_modules',
 						element.label,
 						'package.json'
+					),
+					path.join(
+						this.workspaceRoot,
+						'node_modules',
+						element.label,
+						'package-lock.json'
 					)
 				)
 			);
 		} else {
 			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
+			const packageLockJsonPath = path.join(this.workspaceRoot, 'package-lock.json');
 			if (this.pathExists(packageJsonPath)) {
-				return Promise.resolve(this.getDepsInPackageJson(packageJsonPath));
+				return Promise.resolve(
+					this.getDepsInPackageJson(packageJsonPath, packageLockJsonPath)
+				);
 			} else {
 				vscode.window.showInformationMessage('Workspace has no package.json');
 				return Promise.resolve([]);
@@ -49,10 +58,16 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	/**
 	 * Given the path to package.json, read all its dependencies and devDependencies.
 	 */
-	private getDepsInPackageJson(packageJsonPath: string): Dependency[] {
+	private getDepsInPackageJson(
+		packageJsonPath: string,
+		packageLockJsonPath: string
+	): Dependency[] {
+		let deps: any[] = [];
 		const workspaceRoot = this.workspaceRoot;
+
 		if (this.pathExists(packageJsonPath) && workspaceRoot) {
 			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+			const packageLockJson = fs.readJsonSync(packageLockJsonPath);
 
 			const toDep = (moduleName: string, version: string): Dependency => {
 				if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
@@ -75,18 +90,18 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 				}
 			};
 
-			const deps = packageJson.dependencies
-				? Object.keys(packageJson.dependencies).map((dep) =>
-						toDep(dep, packageJson.dependencies[dep])
-				  )
-				: [];
-			// const devDeps = packageJson.devDependencies
-			// 	? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-			// 	: [];
-			return deps;
+			if (packageJson.dependencies) {
+				deps = Object.keys(packageJson.dependencies).map((dep) =>
+					toDep(dep, packageLockJson.dependencies[dep]?.version)
+				);
+			} else {
+				vscode.window.showInformationMessage('This project has no dependencies');
+			}
 		} else {
-			return [];
+			vscode.window.showInformationMessage('Workspace has no package.json');
 		}
+
+		return deps;
 	}
 
 	private pathExists(p: string): boolean {
