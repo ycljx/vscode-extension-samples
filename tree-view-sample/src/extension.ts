@@ -73,14 +73,6 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)
 		)
 	);
-	vscode.commands.registerCommand('nodeDependencies.addEntry', () =>
-		vscode.window.showInformationMessage(`Successfully called add entry.`)
-	);
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
-	vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) =>
-		vscode.window.showInformationMessage(
-			`Successfully called delete entry on ${node.label}.`
-		)
-	);
 }

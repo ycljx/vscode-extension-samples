@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -51,10 +51,6 @@
 				}
 			},
 			{
-				"command": "nodeDependencies.addEntry",
-				"title": "Add"
-			},
-			{
 				"command": "nodeDependencies.editEntry",
 				"title": "绑定(link)",
 				"icon": {
@@ -69,10 +65,6 @@
 					"light": "resources/light/edit.svg",
 					"dark": "resources/dark/edit.svg"
 				}
-			},
-			{
-				"command": "nodeDependencies.deleteEntry",
-				"title": "Delete"
 			}
 		],
 		"menus": {
@@ -81,10 +73,6 @@
 					"command": "nodeDependencies.refreshEntry",
 					"when": "view == nodeDependencies",
 					"group": "navigation"
-				},
-				{
-					"command": "nodeDependencies.addEntry",
-					"when": "view == nodeDependencies"
 				}
 			],
 			"view/item/context": [
@@ -97,10 +85,6 @@
 					"command": "nodeDependencies.debugEntry",
 					"when": "view == nodeDependencies && viewItem == dependency",
 					"group": "inline"
-				},
-				{
-					"command": "nodeDependencies.deleteEntry",
-					"when": "view == nodeDependencies && viewItem == dependency"
 				}
 			]
 		}
@@ -110,7 +94,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.1.vsix"
+		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.2.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.0",
