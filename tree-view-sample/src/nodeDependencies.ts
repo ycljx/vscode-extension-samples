@@ -88,8 +88,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			};
 
 			if (packageJson.dependencies) {
-				deps = Object.keys(packageJson.dependencies).map((dep) =>
-					toDep(dep, packageLockJson.dependencies[packageJson.name]?.dependencies[dep]?.version || packageLockJson.dependencies[dep]?.version)
+				deps = Object.keys(packageJson.dependencies).filter((dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')).map((dep) =>
+					toDep(dep, packageLockJson.dependencies[dep]?.version)
 				);
 			} else {
 				vscode.window.showErrorMessage('This project has no dependencies');
