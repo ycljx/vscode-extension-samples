@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as os from 'os';
-
-const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> =
@@ -91,19 +88,9 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			};
 
 			if (packageJson.dependencies) {
-				deps = Object.keys(packageJson.dependencies).map(async (dep) => {
-					let linkedDeps: Record<string, any> = {};
-					const isExist = await fs.pathExists(linkedDepsPath);
-					if (isExist) linkedDeps = await fs.readJson(linkedDepsPath);
-					return toDep(
-						dep,
-						linkedDeps[dep]?.from ||
-							packageLockJson.dependencies[packageJson.name]?.dependencies[
-								dep
-							]?.version ||
-							packageLockJson.dependencies[dep]?.version
-					);
-				});
+				deps = Object.keys(packageJson.dependencies).map((dep) =>
+					toDep(dep, packageLockJson.dependencies[packageJson.name]?.dependencies[dep]?.version || packageLockJson.dependencies[dep]?.version)
+				);
 			} else {
 				vscode.window.showErrorMessage('This project has no dependencies');
 			}

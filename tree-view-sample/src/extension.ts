@@ -37,18 +37,20 @@ const handleEditEntry = async (node: Dependency) => {
 	const isExist = await fs.pathExists(linkedDepsPath);
 	if (isExist) linkedDeps = await fs.readJson(linkedDepsPath);
 
-	const workspaceFolder = await vscode.window.showWorkspaceFolderPick({
-		// value: linkedDeps[node.label]?.from || '',
-		placeHolder: '请选择待调试组件的根目录',
+	const result = await vscode.window.showInputBox({
+		value: linkedDeps[node.label]?.from || '',
+		valueSelection: [2, 4],
+		placeHolder: '请输入待调试组件根目录的绝对路径',
 	});
 
-	if (workspaceFolder) {
-		const result = workspaceFolder.uri.path;
+	if (result) {
 		linkedDeps[node.label] = {
 			from: result.endsWith('/') ? result : `${result}/`,
 		};
+
 		if (!isExist) await fs.ensureFile(linkedDepsPath);
 		await fs.writeJson(linkedDepsPath, linkedDeps, { spaces: 2 });
+
 		vscode.window.showInformationMessage(`${node.label}已绑定本地调试路径`);
 	}
 };
