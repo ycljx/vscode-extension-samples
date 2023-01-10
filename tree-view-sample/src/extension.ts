@@ -1,68 +1,87 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as os from 'os';
+import * as path from 'path';
+import * as process from 'process';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
+import { getLinkedDeps, setLinkedDeps } from './utils';
 
-let processId: number | undefined;
-// let processId1: number | undefined;
-const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
+const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
-	if (processId === undefined) {
-		const terminal = vscode.window.createTerminal('监听组件变化');
-		processId = await terminal.processId;
+	const linkedDeps = await getLinkedDeps();
+	if (!linkedDeps[node.label]?.isRunning) {
+		const terminal = vscode.window.createTerminal(node.label);
 		terminal.show();
 		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
+		linkedDeps[node.label].isRunning = true;
+		await setLinkedDeps(linkedDeps);
 
-		vscode.window.onDidCloseTerminal(async (terminal) => {
-			const curProcessId = await terminal.processId;
-			if (processId === curProcessId) {
-				processId = undefined;
+		vscode.window.onDidCloseTerminal(async (closedTerminal) => {
+			if (closedTerminal.name === node.label) {
+				linkedDeps[node.label].isRunning = false;
+				await setLinkedDeps(linkedDeps);
 			}
 		});
-
-		// const terminal1 = vscode.window.createTerminal('开始启动预览引擎');
-		// processId1 = await terminal1.processId;
-		// terminal1.show();
-		// terminal1.sendText('npm start');
 	} else {
 		vscode.window.showWarningMessage('已存在调试程序，请先关闭');
 	}
 };
 
 const handleEditEntry = async (node: Dependency) => {
-	let linkedDeps: Record<string, any> = {};
-	const isExist = await fs.pathExists(linkedDepsPath);
-	if (isExist) linkedDeps = await fs.readJson(linkedDepsPath);
-
+	const linkedDeps = await getLinkedDeps();
+	const fromVal = linkedDeps[node.label]?.from;
 	const result = await vscode.window.showInputBox({
-		value: linkedDeps[node.label]?.from || '',
+		value: fromVal || '',
 		valueSelection: [2, 4],
 		placeHolder: '请输入待调试组件根目录的绝对路径',
 	});
-
-	if (result) {
+	if (result && result !== fromVal) {
 		linkedDeps[node.label] = {
 			from: result.endsWith('/') ? result : `${result}/`,
 		};
-
-		if (!isExist) await fs.ensureFile(linkedDepsPath);
-		await fs.writeJson(linkedDepsPath, linkedDeps, { spaces: 2 });
-
+		await setLinkedDeps(linkedDeps);
 		vscode.window.showInformationMessage(`${node.label}已绑定本地调试路径`);
+		if (linkedDeps[node.label]?.isRunning) {
+			const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
+			curTerminal?.dispose();
+		}
 	}
 };
 
-export function activate(context: vscode.ExtensionContext) {
-	const rootPath =
-		vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-			? vscode.workspace.workspaceFolders[0].uri.fsPath
-			: undefined;
+const handleAddEntry = async () => {
+	const packageJsonPath = path.join(rootPath, 'package.json');
+	const packageJson = fs.readJsonSync(packageJsonPath);
+	const linkedDeps = await getLinkedDeps();
+	const restKeys = Object.keys(packageJson.dependencies).filter(
+		(key) => !Object.keys(linkedDeps).includes(key)
+	);
+	const selected = await vscode.window.showQuickPick(restKeys, {
+		placeHolder: '请选择要添加的组件',
+	});
+	if (selected) {
+		linkedDeps[selected] = {};
+		await setLinkedDeps(linkedDeps);
+		nodeDependenciesProvider.refresh();
+	}
+};
 
-	// Samples of `window.registerTreeDataProvider`
-	const nodeDependenciesProvider = new DepNodeProvider(rootPath);
+const handleDeleteEntry = async (node: Dependency) => {
+	const linkedDeps = await getLinkedDeps();
+	if (linkedDeps[node.label]) {
+		delete linkedDeps[node.label];
+	}
+	await setLinkedDeps(linkedDeps);
+	if (linkedDeps[node.label]?.isRunning) {
+		const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
+		curTerminal?.dispose();
+	}
+	nodeDependenciesProvider.refresh();
+};
+
+export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
 	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () =>
 		nodeDependenciesProvider.refresh()
@@ -75,4 +94,6 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
+	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
+	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
 }

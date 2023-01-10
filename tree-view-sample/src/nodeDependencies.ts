@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { getLinkedDeps } from './utils';
 
 export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | void> =
@@ -20,25 +21,25 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 
 	getChildren(element?: Dependency): Thenable<Dependency[]> {
 		if (!this.workspaceRoot) {
-			vscode.window.showErrorMessage('No dependency in empty workspace');
+			vscode.window.showWarningMessage('No dependency in empty workspace');
 			return Promise.resolve([]);
 		}
 
 		const packageLockJsonPath = path.join(this.workspaceRoot, 'package-lock.json');
 
 		if (element) {
-			return Promise.resolve(
-				this.getDepsInPackageJson(
-					path.join(
-						this.workspaceRoot,
-						'node_modules',
-						element.label,
-						'package.json'
-					),
-					packageLockJsonPath
-				)
-			);
-			// return Promise.resolve([]);
+			// return Promise.resolve(
+			// 	this.getDepsInPackageJson(
+			// 		path.join(
+			// 			this.workspaceRoot,
+			// 			'node_modules',
+			// 			element.label,
+			// 			'package.json'
+			// 		),
+			// 		packageLockJsonPath
+			// 	)
+			// );
+			return Promise.resolve([]);
 		} else {
 			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
 			if (this.pathExists(packageJsonPath)) {
@@ -46,7 +47,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 					this.getDepsInPackageJson(packageJsonPath, packageLockJsonPath)
 				);
 			} else {
-				vscode.window.showErrorMessage('Workspace has no package.json');
+				vscode.window.showWarningMessage('Workspace has no package.json');
 				return Promise.resolve([]);
 			}
 		}
@@ -63,7 +64,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		const workspaceRoot = this.workspaceRoot;
 
 		if (this.pathExists(packageJsonPath) && workspaceRoot) {
-			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+			const packageJson = fs.readJsonSync(packageJsonPath);
 			const packageLockJson = fs.readJsonSync(packageLockJsonPath);
 
 			const toDep = (moduleName: string, version: string): Dependency => {
@@ -88,14 +89,25 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			};
 
 			if (packageJson.dependencies) {
-				deps = Object.keys(packageJson.dependencies).filter((dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')).map((dep) =>
-					toDep(dep, packageLockJson.dependencies[dep]?.version)
-				);
+				void (async function () {
+					const filterKeys = Object.keys(packageJson.dependencies).filter(
+						(dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')
+					);
+					const linkedDeps = await getLinkedDeps();
+					filterKeys.forEach((key) => {
+						if (!linkedDeps[key]) {
+							linkedDeps[key] = {};
+						}
+					});
+					deps = Object.keys(linkedDeps).map((dep) =>
+						toDep(dep, packageLockJson.dependencies[dep]?.version)
+					);
+				})();
 			} else {
-				vscode.window.showErrorMessage('This project has no dependencies');
+				vscode.window.showWarningMessage('This project has no dependencies');
 			}
 		} else {
-			vscode.window.showErrorMessage('Workspace has no package.json');
+			vscode.window.showWarningMessage('Workspace has no package.json');
 		}
 
 		return deps;
