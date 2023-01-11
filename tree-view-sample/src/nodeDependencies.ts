@@ -91,12 +91,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			};
 
 			if (packageJson.dependencies) {
-				const filterKeys = Object.keys(packageJson.dependencies).filter((dep) =>
-					dep.startsWith('@alife/')
-				);
 				const linkedDeps = await getLinkedDeps();
-				const depKeys = Object.keys(linkedDeps);
-				deps = (depKeys.length ? depKeys : filterKeys).map((dep) =>
+				deps = Object.keys(linkedDeps).map((dep) =>
 					toDep(dep, packageLockJson.dependencies[dep]?.version)
 				);
 			} else {

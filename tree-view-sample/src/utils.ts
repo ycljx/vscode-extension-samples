@@ -1,15 +1,16 @@
-import * as os from 'os';
+import * as vscode from 'vscode';
+import * as path from 'path';
 import * as fs from 'fs-extra';
 
 export interface LinkedDeps {
 	[key: string]: {
 		from?: string;
 		to?: string;
-		isRunning?: boolean;
 	};
 }
 
-const linkedDepsPath = `${os.tmpdir()}/.yc/linkedDeps.json`;
+const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+const linkedDepsPath = path.join(rootPath, '.yc/linkedDeps.json');
 
 export const getLinkedDeps = async () => {
 	let linkedDeps: LinkedDeps = {};

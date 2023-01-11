@@ -15,22 +15,12 @@ const handleDebugEntry = async (node: Dependency) => {
 	if (!linkedDeps[node.label]?.from) {
 		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
 	}
-	if (linkedDeps[node.label]?.isRunning) {
-		const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
-		curTerminal?.dispose();
-	}
+	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
+	curTerminal?.dispose();
 	const terminal = vscode.window.createTerminal(node.label);
 	terminal.show();
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
-	linkedDeps[node.label].isRunning = true;
 	await setLinkedDeps(linkedDeps);
-
-	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
-		if (closedTerminal.name === node.label) {
-			linkedDeps[node.label].isRunning = false;
-			await setLinkedDeps(linkedDeps);
-		}
-	});
 };
 
 const handleEditEntry = async (node: Dependency) => {
@@ -46,7 +36,7 @@ const handleEditEntry = async (node: Dependency) => {
 	if (folderUris) {
 		const fromPath = folderUris[0].path;
 		linkedDeps[node.label] = {
-			from: fromPath.endsWith('/') ? fromPath : `${fromPath}/`,
+			from: fromPath,
 		};
 		await setLinkedDeps(linkedDeps);
 		vscode.window.showInformationMessage(`绑定完成，开始监听${node.label}文件变化`);
