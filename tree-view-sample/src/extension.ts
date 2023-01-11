@@ -12,22 +12,25 @@ const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
 	const linkedDeps = await getLinkedDeps();
-	if (!linkedDeps[node.label]?.isRunning) {
-		const terminal = vscode.window.createTerminal(node.label);
-		terminal.show();
-		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
-		linkedDeps[node.label].isRunning = true;
-		await setLinkedDeps(linkedDeps);
-
-		vscode.window.onDidCloseTerminal(async (closedTerminal) => {
-			if (closedTerminal.name === node.label) {
-				linkedDeps[node.label].isRunning = false;
-				await setLinkedDeps(linkedDeps);
-			}
-		});
-	} else {
-		vscode.window.showWarningMessage('已存在调试程序，请先关闭');
+	if (!linkedDeps[node.label]?.from) {
+		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
 	}
+	if (linkedDeps[node.label]?.isRunning) {
+		const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
+		curTerminal?.dispose();
+	}
+	const terminal = vscode.window.createTerminal(node.label);
+	terminal.show();
+	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
+	linkedDeps[node.label].isRunning = true;
+	await setLinkedDeps(linkedDeps);
+
+	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
+		if (closedTerminal.name === node.label) {
+			linkedDeps[node.label].isRunning = false;
+			await setLinkedDeps(linkedDeps);
+		}
+	});
 };
 
 const handleEditEntry = async (node: Dependency) => {
@@ -46,11 +49,8 @@ const handleEditEntry = async (node: Dependency) => {
 			from: fromPath.endsWith('/') ? fromPath : `${fromPath}/`,
 		};
 		await setLinkedDeps(linkedDeps);
-		vscode.window.showInformationMessage(`${node.label}已绑定本地调试路径`);
-		if (linkedDeps[node.label]?.isRunning) {
-			const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
-			curTerminal?.dispose();
-		}
+		vscode.window.showInformationMessage(`绑定完成，开始监听${node.label}文件变化`);
+		handleDebugEntry(node);
 	}
 };
 
@@ -77,10 +77,8 @@ const handleDeleteEntry = async (node: Dependency) => {
 		delete linkedDeps[node.label];
 	}
 	await setLinkedDeps(linkedDeps);
-	if (linkedDeps[node.label]?.isRunning) {
-		const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
-		curTerminal?.dispose();
-	}
+	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
+	curTerminal?.dispose();
 	nodeDependenciesProvider.refresh();
 };
 
@@ -96,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// 	)
 	// );
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
-	vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
+	// vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
 	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
 }

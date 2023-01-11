@@ -67,14 +67,6 @@
 				}
 			},
 			{
-				"command": "nodeDependencies.debugEntry",
-				"title": "调试(debug)",
-				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
-				}
-			},
-			{
 				"command": "nodeDependencies.deleteEntry",
 				"title": "删除(Delete)",
 				"icon": {
@@ -104,11 +96,6 @@
 				},
 				{
 					"command": "nodeDependencies.editEntry",
-					"when": "view == nodeDependencies && viewItem == dependency",
-					"group": "inline"
-				},
-				{
-					"command": "nodeDependencies.debugEntry",
 					"when": "view == nodeDependencies && viewItem == dependency",
 					"group": "inline"
 				}

@@ -80,7 +80,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 				return new Dependency(
 					moduleName,
 					version,
-					vscode.TreeItemCollapsibleState.None,
+					vscode.TreeItemCollapsibleState.None
 					// {
 					// 	command: 'extension.openPackageOnNpm',
 					// 	title: '',
@@ -91,16 +91,12 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			};
 
 			if (packageJson.dependencies) {
-				const filterKeys = Object.keys(packageJson.dependencies).filter(
-					(dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')
+				const filterKeys = Object.keys(packageJson.dependencies).filter((dep) =>
+					dep.startsWith('@alife/')
 				);
 				const linkedDeps = await getLinkedDeps();
-				filterKeys.forEach((key) => {
-					if (!linkedDeps[key]) {
-						linkedDeps[key] = {};
-					}
-				});
-				deps = Object.keys(linkedDeps).map((dep) =>
+				const depKeys = Object.keys(linkedDeps);
+				deps = (depKeys.length ? depKeys : filterKeys).map((dep) =>
 					toDep(dep, packageLockJson.dependencies[dep]?.version)
 				);
 			} else {
