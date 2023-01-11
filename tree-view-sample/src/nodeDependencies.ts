@@ -19,7 +19,7 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		return element;
 	}
 
-	getChildren(element?: Dependency): Thenable<Dependency[]> {
+	async getChildren(element?: Dependency): Promise<Dependency[]> {
 		if (!this.workspaceRoot) {
 			vscode.window.showWarningMessage('No dependency in empty workspace');
 			return Promise.resolve([]);
@@ -43,9 +43,11 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		} else {
 			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
 			if (this.pathExists(packageJsonPath)) {
-				return Promise.resolve(
-					this.getDepsInPackageJson(packageJsonPath, packageLockJsonPath)
+				const deps = await this.getDepsInPackageJson(
+					packageJsonPath,
+					packageLockJsonPath
 				);
+				return Promise.resolve(deps);
 			} else {
 				vscode.window.showWarningMessage('Workspace has no package.json');
 				return Promise.resolve([]);
@@ -56,10 +58,10 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 	/**
 	 * Given the path to package.json, read all its dependencies and devDependencies.
 	 */
-	private getDepsInPackageJson(
+	private async getDepsInPackageJson(
 		packageJsonPath: string,
 		packageLockJsonPath: string
-	): Dependency[] {
+	): Promise<Dependency[]> {
 		let deps: any[] = [];
 		const workspaceRoot = this.workspaceRoot;
 
@@ -68,41 +70,39 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			const packageLockJson = fs.readJsonSync(packageLockJsonPath);
 
 			const toDep = (moduleName: string, version: string): Dependency => {
-				if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
-					return new Dependency(
-						moduleName,
-						version,
-						vscode.TreeItemCollapsibleState.Collapsed
-					);
-				} else {
-					return new Dependency(
-						moduleName,
-						version,
-						vscode.TreeItemCollapsibleState.None,
-						{
-							command: 'extension.openPackageOnNpm',
-							title: '',
-							arguments: [moduleName],
-						}
-					);
-				}
+				// if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
+				// 	return new Dependency(
+				// 		moduleName,
+				// 		version,
+				// 		vscode.TreeItemCollapsibleState.Collapsed
+				// 	);
+				// } else {
+				return new Dependency(
+					moduleName,
+					version,
+					vscode.TreeItemCollapsibleState.None,
+					// {
+					// 	command: 'extension.openPackageOnNpm',
+					// 	title: '',
+					// 	arguments: [moduleName],
+					// }
+				);
+				// }
 			};
 
 			if (packageJson.dependencies) {
-				void (async function () {
-					const filterKeys = Object.keys(packageJson.dependencies).filter(
-						(dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')
-					);
-					const linkedDeps = await getLinkedDeps();
-					filterKeys.forEach((key) => {
-						if (!linkedDeps[key]) {
-							linkedDeps[key] = {};
-						}
-					});
-					deps = Object.keys(linkedDeps).map((dep) =>
-						toDep(dep, packageLockJson.dependencies[dep]?.version)
-					);
-				})();
+				const filterKeys = Object.keys(packageJson.dependencies).filter(
+					(dep) => dep.startsWith('@ali/') || dep.startsWith('@alife/')
+				);
+				const linkedDeps = await getLinkedDeps();
+				filterKeys.forEach((key) => {
+					if (!linkedDeps[key]) {
+						linkedDeps[key] = {};
+					}
+				});
+				deps = Object.keys(linkedDeps).map((dep) =>
+					toDep(dep, packageLockJson.dependencies[dep]?.version)
+				);
 			} else {
 				vscode.window.showWarningMessage('This project has no dependencies');
 			}

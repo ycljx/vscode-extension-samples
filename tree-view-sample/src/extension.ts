@@ -33,14 +33,17 @@ const handleDebugEntry = async (node: Dependency) => {
 const handleEditEntry = async (node: Dependency) => {
 	const linkedDeps = await getLinkedDeps();
 	const fromVal = linkedDeps[node.label]?.from;
-	const result = await vscode.window.showInputBox({
-		value: fromVal || '',
-		valueSelection: [2, 4],
-		placeHolder: '请输入待调试组件根目录的绝对路径',
+	const folderUris = await vscode.window.showOpenDialog({
+		defaultUri: vscode.Uri.parse(fromVal || 'file://Users'),
+		canSelectFolders: true,
+		canSelectFiles: false,
+		canSelectMany: false,
+		title: '请选择待调试的组件根目录',
 	});
-	if (result && result !== fromVal) {
+	if (folderUris) {
+		const fromPath = folderUris[0].path;
 		linkedDeps[node.label] = {
-			from: result.endsWith('/') ? result : `${result}/`,
+			from: fromPath.endsWith('/') ? fromPath : `${fromPath}/`,
 		};
 		await setLinkedDeps(linkedDeps);
 		vscode.window.showInformationMessage(`${node.label}已绑定本地调试路径`);
@@ -86,12 +89,12 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () =>
 		nodeDependenciesProvider.refresh()
 	);
-	vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
-		vscode.commands.executeCommand(
-			'vscode.open',
-			vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)
-		)
-	);
+	// vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
+	// 	vscode.commands.executeCommand(
+	// 		'vscode.open',
+	// 		vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)
+	// 	)
+	// );
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
 	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
