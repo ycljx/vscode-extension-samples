@@ -38,7 +38,7 @@ const handleEditEntry = async (node: Dependency) => {
 		canSelectFolders: true,
 		canSelectFiles: false,
 		canSelectMany: false,
-		title: '请选择待调试的组件根目录',
+		openLabel: '确认待调试组件根目录',
 	});
 	if (folderUris) {
 		const fromPath = folderUris[0].path;
