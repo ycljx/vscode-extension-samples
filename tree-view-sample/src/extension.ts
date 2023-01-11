@@ -8,6 +8,7 @@ import { DepNodeProvider, Dependency } from './nodeDependencies';
 import { getLinkedDeps, setLinkedDeps } from './utils';
 
 const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+const aliasPath = path.join(rootPath, 'alias.json');
 const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
@@ -21,6 +22,21 @@ const handleDebugEntry = async (node: Dependency) => {
 	terminal.show();
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 	await setLinkedDeps(linkedDeps);
+	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
+		const name = closedTerminal.name;
+		const isAliasExist = await fs.pathExists(aliasPath);
+		const alias = isAliasExist ? await fs.readJson(aliasPath) : {};
+		delete alias[name];
+		if (name === '@alife/xiaoer-json-form') {
+			delete alias['@formily/next'];
+			delete alias['@formily/next/lib/style.js'];
+		}
+		if (Object.keys(alias).length) {
+			await fs.writeJson(aliasPath, alias, { spaces: 2 });
+		} else {
+			await fs.remove(aliasPath);
+		}
+	});
 };
 
 const handleEditEntry = async (node: Dependency) => {
