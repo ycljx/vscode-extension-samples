@@ -90,6 +90,7 @@ const handleDeleteEntry = async (node: Dependency) => {
 
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
+	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
 	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () =>
 		nodeDependenciesProvider.refresh()
 	);
@@ -101,6 +102,5 @@ export function activate(context: vscode.ExtensionContext) {
 	// );
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	// vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
-	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
 }
