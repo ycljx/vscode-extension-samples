@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "0.0.10",
+	"version": "0.0.11",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -24,7 +24,7 @@
 	"contributes": {
 		"viewsWelcome": [
       {
-        "view": "workbench.explorer.emptyView",
+        "view": "package-explorer.emptyView",
         "contents": "您还未添加待调试的组件，请点击右上角加号添加\n参考文档：[Orca预览引擎调试流程](https://code.visualstudio.com)\n[Orca搭建的工作台页面调试流程](https://code.visualstudio.com)"
       }
     ],
@@ -113,7 +113,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.10.vsix"
+		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.11.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.0",
