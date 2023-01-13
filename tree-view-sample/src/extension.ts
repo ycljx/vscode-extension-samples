@@ -10,6 +10,7 @@ import { getLinkedDeps, setLinkedDeps } from './utils';
 
 const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
 const aliasPath = path.join(rootPath, 'alias.json');
+const ycPath = path.join(rootPath, '.yc');
 const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
@@ -84,9 +85,16 @@ const handleStartEntry = async () => {
 	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 	curTerminal?.dispose();
 	let openStr = '';
-	const answer = await vscode.window.showInformationMessage('是否需要以跨域模式打开Chrome浏览器？', '是', '否');
+	const answer = await vscode.window.showInformationMessage(
+		'是否需要以跨域模式打开Chrome浏览器？',
+		'是',
+		'否'
+	);
 	if (answer === '是') {
-		openStr = `open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
+		openStr = `open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
+			os.homedir(),
+			'MyChromeDevUserData'
+		)} && `;
 	}
 	const terminal = vscode.window.createTerminal(projectName);
 	terminal.show();
@@ -102,6 +110,30 @@ const handleDeleteEntry = async (node: Dependency) => {
 	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
 	curTerminal?.dispose();
 	nodeDependenciesProvider.refresh();
+};
+
+const handleConfigEntry = async (type: 'bzbConfig' | 'orcaPreviewConfig') => {
+	const configPath = path.join(ycPath, `${type}.json`);
+	if (type === 'bzbConfig') {
+		await fs.writeJson(
+			configPath,
+			[
+				'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
+				`//localhost:${process.env.SERVER_PORT}/js/index.js`,
+			],
+			{ spaces: 2 }
+		);
+	} else if (type === 'orcaPreviewConfig') {
+		await fs.writeJson(
+			configPath,
+			[
+				'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js',
+				`//localhost:${process.env.SERVER_PORT}/js/index.js`,
+			],
+			{ spaces: 2 }
+		);
+	}
+	vscode.window.showTextDocument(vscode.Uri.file(configPath));
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -120,4 +152,10 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	// vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
+	vscode.commands.registerCommand('nodeDependencies.bzbConfig', () =>
+		handleConfigEntry('bzbConfig')
+	);
+	vscode.commands.registerCommand('nodeDependencies.orcaPreviewConfig', () =>
+		handleConfigEntry('orcaPreviewConfig')
+	);
 }
