@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import * as process from 'process';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
@@ -43,7 +44,7 @@ const handleEditEntry = async (node: Dependency) => {
 	const linkedDeps = await getLinkedDeps();
 	const fromVal = linkedDeps[node.label]?.from;
 	const folderUris = await vscode.window.showOpenDialog({
-		defaultUri: vscode.Uri.parse(fromVal || 'file://Users'),
+		defaultUri: vscode.Uri.parse(fromVal || os.homedir()),
 		canSelectFolders: true,
 		canSelectFiles: false,
 		canSelectMany: false,
@@ -77,6 +78,16 @@ const handleAddEntry = async () => {
 	}
 };
 
+const handleStartEntry = async () => {
+	const startIndex = rootPath.lastIndexOf('/');
+	const projectName = rootPath.slice(startIndex + 1);
+	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
+	curTerminal?.dispose();
+	const terminal = vscode.window.createTerminal(projectName);
+	terminal.show();
+	terminal.sendText('npm start');
+};
+
 const handleDeleteEntry = async (node: Dependency) => {
 	const linkedDeps = await getLinkedDeps();
 	if (linkedDeps[node.label]) {
@@ -94,6 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () =>
 		nodeDependenciesProvider.refresh()
 	);
+	vscode.commands.registerCommand('nodeDependencies.startEntry', handleStartEntry);
 	// vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
 	// 	vscode.commands.executeCommand(
 	// 		'vscode.open',
