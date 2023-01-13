@@ -84,10 +84,10 @@ const handleStartEntry = async () => {
 	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 	curTerminal?.dispose();
 	let openStr = '';
-	const answer = await vscode.window.showInformationMessage('是否需要以跨域模式打开Chrome浏览器？', '是', '否');
-	if (answer === '是') {
-		openStr = `open -n /Applications/Google\ Chrome.app/ --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
-	}
+	// const answer = await vscode.window.showInformationMessage('是否需要以跨域模式打开Chrome浏览器？', '是', '否');
+	// if (answer === '是') {
+	// 	openStr = `open -n /Applications/Google\ ${path.join(os.homedir(), 'Chrome.app')} --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
+	// }
 	const terminal = vscode.window.createTerminal(projectName);
 	terminal.show();
 	terminal.sendText(`${openStr}npm start`);
