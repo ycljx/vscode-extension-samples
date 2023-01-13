@@ -44,7 +44,7 @@ const handleEditEntry = async (node: Dependency) => {
 	const linkedDeps = await getLinkedDeps();
 	const fromVal = linkedDeps[node.label]?.from;
 	const folderUris = await vscode.window.showOpenDialog({
-		defaultUri: vscode.Uri.parse(fromVal || os.homedir()),
+		defaultUri: vscode.Uri.parse(fromVal || path.join(os.homedir(), 'Desktop')),
 		canSelectFolders: true,
 		canSelectFiles: false,
 		canSelectMany: false,
@@ -83,9 +83,14 @@ const handleStartEntry = async () => {
 	const projectName = rootPath.slice(startIndex + 1);
 	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 	curTerminal?.dispose();
+	let openStr = '';
+	const answer = await vscode.window.showInformationMessage('是否需要以跨域模式打开Chrome浏览器？', '是', '否');
+	if (answer === '是') {
+		openStr = `open -n /Applications/Google\ Chrome.app/ --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
+	}
 	const terminal = vscode.window.createTerminal(projectName);
 	terminal.show();
-	terminal.sendText('npm start');
+	terminal.sendText(`${openStr}npm start`);
 };
 
 const handleDeleteEntry = async (node: Dependency) => {

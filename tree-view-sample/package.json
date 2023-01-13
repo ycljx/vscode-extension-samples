@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "0.0.14",
+	"version": "0.0.15",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -25,7 +25,7 @@
 		"viewsWelcome": [
       {
         "view": "nodeDependencies",
-        "contents": "您还未添加待调试的组件，请点击右上角加号添加\n### Orca预览引擎调试流程：\n1. 在此工作区内添加完组件并且绑定本地调试目录后会自动启动文件监听进程，请勿关闭\n2. 点击右上角程序启动按钮，启动程序后打开Chrome浏览器定位到待调试的Orca[预发](https://pre-orca.alibaba-inc.com)或[线上](https://orca.alibaba-inc.com)页面\n3. 通过[XSwitch](https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg)插件代理静态资源，配置如下：\n```json[\n\t\"//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js\",\n\t\"//localhost:${SERVER_PORT}/js/index.js\"\n]```\n4. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～### Orca搭建的工作台页面调试流程\n1. 同上\n2. 点击右上角程序启动按钮，启动程序后打开Chrome浏览器定位到待调试的工作台[预发](https://pre-xiaoer.alibaba-inc.com)或[线上](https://xiaoer.alibaba-inc.com)页面\n3. 代理配置如下：\n```json[\n\t\"//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js\",\n\t\"//localhost:${SERVER_PORT}/js/index.js\"\n]```\n4. 同上"
+        "contents": "您还未添加待调试的组件，请点击右上角加号添加\nOrca预览引擎调试流程：\n1. 在此工作区内添加完组件并且绑定本地调试目录后会自动启动文件监听进程，请勿关闭\n2. 点击右上角程序启动按钮，启动程序后打开Chrome浏览器定位到待调试的Orca[预发](https://pre-orca.alibaba-inc.com)或[线上](https://orca.alibaba-inc.com)页面\n3. 通过[XSwitch](https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg)插件代理静态资源，配置如下：\n[\n  \"//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js\",\n  \"//localhost:${SERVER_PORT}/js/index.js\"\n]\n4. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～\nOrca搭建的工作台页面调试流程：\n1. 同上\n2. 点击右上角程序启动按钮，启动程序后打开Chrome浏览器定位到待调试的工作台[预发](https://pre-xiaoer.alibaba-inc.com)或[线上](https://xiaoer.alibaba-inc.com)页面\n3. 代理配置如下：\n[\n  \"//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js\",\n  \"//localhost:${SERVER_PORT}/js/index.js\"\n]\n4. 同上"
       }
     ],
 		"viewsContainers": {
@@ -126,7 +126,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.14.vsix"
+		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.15.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.0",
