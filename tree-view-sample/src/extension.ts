@@ -86,7 +86,7 @@ const handleStartEntry = async () => {
 	let openStr = '';
 	const answer = await vscode.window.showInformationMessage('是否需要以跨域模式打开Chrome浏览器？', '是', '否');
 	if (answer === '是') {
-		openStr = `open -n /Applications/Google\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
+		openStr = `open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(os.homedir(), 'MyChromeDevUserData')} && `;
 	}
 	const terminal = vscode.window.createTerminal(projectName);
 	terminal.show();
