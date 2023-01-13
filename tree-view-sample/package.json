@@ -24,8 +24,8 @@
 	"contributes": {
 		"viewsWelcome": [
       {
-        "view": "package-explorer.emptyView",
-        "contents": "您还未添加待调试的组件，请点击右上角加号添加\n参考文档：[Orca预览引擎调试流程](https://code.visualstudio.com)\n[Orca搭建的工作台页面调试流程](https://code.visualstudio.com)"
+        "view": "nodeDependencies.emptyView",
+        "contents": "您还未添加待调试的组件，请点击右上角加号添加\n参考文档：[Orca预览引擎调试流程](https://code.visualstudio.com)/[Orca搭建的工作台页面调试流程](https://code.visualstudio.com)"
       }
     ],
 		"viewsContainers": {
