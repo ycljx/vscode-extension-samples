@@ -119,18 +119,9 @@ const handleDeleteEntry = async (node: Dependency) => {
 	nodeDependenciesProvider.refresh();
 };
 
-const handleConfigEntry = async (type: 'bzbConfig' | 'orcaPreviewConfig') => {
+const handleConfigEntry = async (type: string) => {
 	const configPath = path.join(ycPath, `${type}.json`);
 	if (type === 'bzbConfig') {
-		await fs.writeJson(
-			configPath,
-			[
-				'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
-				'//localhost:1024/js/index.js',
-			],
-			{ spaces: 2 }
-		);
-	} else if (type === 'orcaPreviewConfig') {
 		await fs.writeJson(
 			configPath,
 			[
@@ -139,8 +130,30 @@ const handleConfigEntry = async (type: 'bzbConfig' | 'orcaPreviewConfig') => {
 			],
 			{ spaces: 2 }
 		);
+	} else if (type === 'orcaPreviewConfig') {
+		await fs.writeJson(
+			configPath,
+			[
+				'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
+				'//localhost:1024/js/index.js',
+			],
+			{ spaces: 2 }
+		);
 	}
 	vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: false });
+};
+
+const handleSettingEntry = async () => {
+	const selected = await vscode.window.showQuickPick(
+		[
+			{ label: 'Orca预览引擎代理配置', value: 'orcaPreviewConfig' },
+			{ label: 'Orca搭建的工作台页面代理配置', value: 'bzbConfig' },
+		],
+		{
+			placeHolder: '请选择要查看的代理配置',
+		}
+	);
+	selected && handleConfigEntry(selected.value);
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -150,10 +163,7 @@ export function activate(context: vscode.ExtensionContext) {
 		nodeDependenciesProvider.refresh()
 	);
 	vscode.commands.registerCommand('nodeDependencies.startEntry', handleStartEntry);
-	vscode.commands.registerCommand('nodeDependencies.moreEntry', () => {
-		handleConfigEntry('bzbConfig');
-		handleConfigEntry('orcaPreviewConfig');
-	});
+	vscode.commands.registerCommand('nodeDependencies.settingEntry', handleSettingEntry);
 	// vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
 	// 	vscode.commands.executeCommand(
 	// 		'vscode.open',

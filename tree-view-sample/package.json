@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -95,6 +95,14 @@
 					"light": "resources/light/close.svg",
 					"dark": "resources/dark/close.svg"
 				}
+			},
+			{
+				"command": "nodeDependencies.settingEntry",
+				"title": "代理配置(proxy config)",
+				"icon": {
+					"light": "resources/light/setting.svg",
+					"dark": "resources/dark/setting.svg"
+				}
 			}
 		],
 		"menus": {
@@ -111,6 +119,11 @@
 				},
 				{
 					"command": "nodeDependencies.startEntry",
+					"when": "view == nodeDependencies",
+					"group": "navigation"
+				},
+				{
+					"command": "nodeDependencies.settingEntry",
 					"when": "view == nodeDependencies",
 					"group": "navigation"
 				}
@@ -134,7 +147,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.20.vsix"
+		"ie": "vsce package && code --install-extension orca-preview-debug-0.0.21.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.0.0",
