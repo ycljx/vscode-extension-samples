@@ -63,11 +63,11 @@ const handleEditEntry = async (node: Dependency) => {
 };
 
 const handleAddEntry = async () => {
-	const packageJsonPath = path.join(rootPath, 'package.json');
-	const packageJson = fs.readJsonSync(packageJsonPath);
+	const packageLockJsonPath = path.join(rootPath, 'package-lock.json');
+	const packageLockJson = fs.readJsonSync(packageLockJsonPath);
 	const linkedDeps = await getLinkedDeps();
-	const restKeys = Object.keys(packageJson.dependencies).filter(
-		(key) => !Object.keys(linkedDeps).includes(key)
+	const restKeys = Object.keys(packageLockJson.dependencies).filter(
+		(key) => key.startsWith('@ali') && !Object.keys(linkedDeps).includes(key)
 	);
 	const selected = await vscode.window.showQuickPick(restKeys, {
 		placeHolder: '请选择要添加的组件',
@@ -76,6 +76,13 @@ const handleAddEntry = async () => {
 		linkedDeps[selected] = {};
 		await setLinkedDeps(linkedDeps);
 		nodeDependenciesProvider.refresh();
+		handleEditEntry(
+			new Dependency(
+				selected,
+				packageLockJson.dependencies[selected]?.version,
+				vscode.TreeItemCollapsibleState.None
+			)
+		);
 	}
 };
 
@@ -98,7 +105,7 @@ const handleStartEntry = async () => {
 	}
 	const terminal = vscode.window.createTerminal(projectName);
 	terminal.show();
-	terminal.sendText(`${openStr}npm start`);
+	terminal.sendText(`${openStr}npm start -- --port=1024`);
 };
 
 const handleDeleteEntry = async (node: Dependency) => {
@@ -119,7 +126,7 @@ const handleConfigEntry = async (type: 'bzbConfig' | 'orcaPreviewConfig') => {
 			configPath,
 			[
 				'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
-				`//localhost:${process.env.SERVER_PORT}/js/index.js`,
+				'//localhost:1024/js/index.js',
 			],
 			{ spaces: 2 }
 		);
@@ -128,12 +135,12 @@ const handleConfigEntry = async (type: 'bzbConfig' | 'orcaPreviewConfig') => {
 			configPath,
 			[
 				'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js',
-				`//localhost:${process.env.SERVER_PORT}/js/index.js`,
+				'//localhost:1024/js/index.js',
 			],
 			{ spaces: 2 }
 		);
 	}
-	vscode.window.showTextDocument(vscode.Uri.file(configPath));
+	vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: false });
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -143,6 +150,10 @@ export function activate(context: vscode.ExtensionContext) {
 		nodeDependenciesProvider.refresh()
 	);
 	vscode.commands.registerCommand('nodeDependencies.startEntry', handleStartEntry);
+	vscode.commands.registerCommand('nodeDependencies.moreEntry', () => {
+		handleConfigEntry('bzbConfig');
+		handleConfigEntry('orcaPreviewConfig');
+	});
 	// vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
 	// 	vscode.commands.executeCommand(
 	// 		'vscode.open',
