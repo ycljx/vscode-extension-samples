@@ -102,7 +102,7 @@ const handleStartEntry = async () => {
 			hideFromUser: true,
 		});
 		terminal.sendText('git pull');
-		await new Promise((r) => setTimeout(r, 1000));
+		await new Promise((r) => setTimeout(r, 3000));
 		const pkg = await fs.readJson(pkgPath);
 		if (pkg.version !== oldPkg.version) {
 			vscode.window.showInformationMessage('检测到项目依赖变化，执行依赖升级');
