@@ -6,7 +6,6 @@ import * as os from 'os';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
 import { getLinkedDeps, setLinkedDeps, rootPath, ycPath } from './utils';
-import { execSync } from 'child_process';
 
 const aliasPath = path.join(rootPath, 'alias.json');
 const pkgPath = path.join(rootPath, 'package.json');
@@ -98,7 +97,12 @@ const handleStartEntry = async () => {
 	);
 	if (answer) {
 		const oldPkg = await fs.readJson(pkgPath);
-		execSync('git pull');
+		const terminal = vscode.window.createTerminal({
+			name: projectName,
+			hideFromUser: true,
+		});
+		terminal.sendText('git pull');
+		await new Promise((r) => setTimeout(r, 1000));
 		const pkg = await fs.readJson(pkgPath);
 		if (pkg.version !== oldPkg.version) {
 			vscode.window.showInformationMessage('检测到项目依赖变化，执行依赖升级');
@@ -110,9 +114,9 @@ const handleStartEntry = async () => {
 				'MyChromeDevUserData'
 			)} && `;
 		}
-		const terminal = vscode.window.createTerminal(projectName);
-		terminal.show();
-		terminal.sendText(`${openStr}npm start -- --port=1024`);
+		const terminal1 = vscode.window.createTerminal(projectName);
+		terminal1.show();
+		terminal1.sendText(`${openStr}npm start -- --port=1024`);
 	}
 };
 
