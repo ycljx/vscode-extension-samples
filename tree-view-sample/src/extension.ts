@@ -3,14 +3,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
-import * as process from 'process';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
-import { getLinkedDeps, setLinkedDeps } from './utils';
+import { getLinkedDeps, setLinkedDeps, rootPath, ycPath } from './utils';
+import { execSync } from 'child_process';
 
-const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
 const aliasPath = path.join(rootPath, 'alias.json');
-const ycPath = path.join(rootPath, '.yc');
+const pkgPath = path.join(rootPath, 'package.json');
 const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
@@ -97,15 +96,24 @@ const handleStartEntry = async () => {
 		'是',
 		'否'
 	);
-	if (answer === '是') {
-		openStr = `open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
-			os.homedir(),
-			'MyChromeDevUserData'
-		)} && `;
+	if (answer) {
+		const oldPkg = await fs.readJson(pkgPath);
+		execSync('git pull');
+		const pkg = await fs.readJson(pkgPath);
+		if (pkg.version !== oldPkg.version) {
+			vscode.window.showInformationMessage('检测到项目依赖变化，执行依赖升级');
+			openStr = `${openStr}tnpm update && `;
+		}
+		if (answer === '是') {
+			openStr = `${openStr}open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
+				os.homedir(),
+				'MyChromeDevUserData'
+			)} && `;
+		}
+		const terminal = vscode.window.createTerminal(projectName);
+		terminal.show();
+		terminal.sendText(`${openStr}npm start -- --port=1024`);
 	}
-	const terminal = vscode.window.createTerminal(projectName);
-	terminal.show();
-	terminal.sendText(`${openStr}npm start -- --port=1024`);
 };
 
 const handleDeleteEntry = async (node: Dependency) => {

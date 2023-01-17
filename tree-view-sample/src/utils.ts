@@ -9,7 +9,8 @@ export interface LinkedDeps {
 	};
 }
 
-const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+export const rootPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath || process.cwd();
+export const ycPath = path.join(rootPath, '.yc');
 const linkedDepsPath = path.join(rootPath, '.yc/linkedDeps.json');
 
 export const getLinkedDeps = async () => {
