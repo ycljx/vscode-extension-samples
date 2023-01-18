@@ -105,10 +105,27 @@ const handleStartEntry = async () => {
 			hideFromUser: true,
 		});
 		terminal.sendText('git pull');
+		vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: '进程启动',
+				cancellable: false,
+			},
+			(progress) => {
+				progress.report({ increment: 0 });
+				setTimeout(() => {
+					progress.report({ increment: 30, message: '代码拉取中' });
+				}, 1000);
+				setTimeout(() => {
+					progress.report({ increment: 60, message: '依赖检查中' });
+				}, 2000);
+				return new Promise((r) => setTimeout(r, 3000));
+			}
+		);
 		await new Promise((r) => setTimeout(r, 3000));
 		const pkg = await fs.readJson(pkgPath);
 		if (pkg.version !== oldPkg.version) {
-			vscode.window.showInformationMessage('检测到项目依赖变化，执行依赖升级');
+			vscode.window.showInformationMessage('项目依赖需升级，开始执行依赖安装');
 			openStr = `${openStr}tnpm update && `;
 			await fs.writeJson(oldPkgPath, pkg, { spaces: 2 });
 		}
