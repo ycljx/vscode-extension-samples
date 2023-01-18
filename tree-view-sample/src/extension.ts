@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import { DepNodeProvider, Dependency } from './nodeDependencies';
-import { getLinkedDeps, setLinkedDeps, rootPath, ycPath } from './utils';
+import { getLinkedDeps, setLinkedDeps, rootPath, ycPath, projectName } from './utils';
 
 const aliasPath = path.join(rootPath, 'alias.json');
 const pkgPath = path.join(rootPath, 'package.json');
@@ -86,8 +86,6 @@ const handleAddEntry = async () => {
 };
 
 const handleStartEntry = async () => {
-	const startIndex = rootPath.lastIndexOf('/');
-	const projectName = rootPath.slice(startIndex + 1);
 	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 	curTerminal?.dispose();
 	let openStr = '';
