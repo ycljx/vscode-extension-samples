@@ -9,6 +9,7 @@ import { getLinkedDeps, setLinkedDeps, rootPath, ycPath } from './utils';
 
 const aliasPath = path.join(rootPath, 'alias.json');
 const pkgPath = path.join(rootPath, 'package.json');
+const oldPkgPath = path.join(ycPath, 'package-old.json');
 const nodeDependenciesProvider = new DepNodeProvider(rootPath);
 
 const handleDebugEntry = async (node: Dependency) => {
@@ -96,7 +97,9 @@ const handleStartEntry = async () => {
 		'否'
 	);
 	if (answer) {
-		const oldPkg = await fs.readJson(pkgPath);
+		const oldPkg = (await fs.pathExists(oldPkgPath))
+			? await fs.readJson(oldPkgPath)
+			: {};
 		const terminal = vscode.window.createTerminal({
 			name: projectName,
 			hideFromUser: true,
@@ -107,6 +110,7 @@ const handleStartEntry = async () => {
 		if (pkg.version !== oldPkg.version) {
 			vscode.window.showInformationMessage('检测到项目依赖变化，执行依赖升级');
 			openStr = `${openStr}tnpm update && `;
+			await fs.writeJson(oldPkgPath, pkg, { spaces: 2 });
 		}
 		if (answer === '是') {
 			openStr = `${openStr}open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
