@@ -86,7 +86,6 @@ const handleAddEntry = async () => {
 };
 
 const handleStartEntry = async () => {
-	vscode.window.showInformationMessage(projectName!);
 	const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 	curTerminal?.dispose();
 	let openStr = '';
