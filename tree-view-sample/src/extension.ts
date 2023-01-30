@@ -117,10 +117,10 @@ const handleStartEntry = async () => {
 				setTimeout(() => {
 					progress.report({ increment: 60, message: '依赖检查中' });
 				}, 2000);
-				return new Promise((r) => setTimeout(r, 3000));
+				return new Promise((r) => setTimeout(r, 4000));
 			}
 		);
-		await new Promise((r) => setTimeout(r, 3000));
+		await new Promise((r) => setTimeout(r, 4000));
 		const pkg = await fs.readJson(pkgPath);
 		if (pkg.version !== oldPkg.version) {
 			vscode.window.showInformationMessage('项目依赖需升级，开始执行依赖安装');
@@ -161,6 +161,23 @@ const handleConfigEntry = async (type: string) => {
 				os.homedir(),
 				'MyChromeDevUserData'
 			)}`
+		);
+		vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: '进程启动',
+				cancellable: false,
+			},
+			(progress) => {
+				progress.report({ increment: 0 });
+				setTimeout(() => {
+					progress.report({ increment: 30, message: '环境检查中' });
+				}, 1000);
+				setTimeout(() => {
+					progress.report({ increment: 60, message: '浏览器启动中' });
+				}, 2000);
+				return new Promise((r) => setTimeout(r, 4000));
+			}
 		);
 	} else {
 		const configPath = path.join(ycPath, `${type}.json`);
