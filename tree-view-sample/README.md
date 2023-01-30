@@ -1,51 +1,7 @@
-# Views & View Containers
+### 操作步骤：
 
-This sample demonstrates how to implement and contribute a tree view in VS Code. This includes:
-
-- Contributing views and view containers.
-- Contributing actions in various location of the view.
-- Implementing the tree data provider for the view.
-- Creating and working with the view.
-
-This sample provides following views
-
-- Node dependencies view
-- Ftp file explorer view
-
-Following example shows Node dependencies view in Package Explorer View container.
-
-![Package Explorer](./resources/package-explorer.png)
-
-## VS Code API
-
-This sample uses following contribution points, activation events and APIs
-
-### Contribution Points
-
-- `views`
-- `viewsContainers`
-- `menu`
-  - `view/title`
-  - `view/item/context`
-
-### Activation Events
-
-- `onView:${viewId}`
-
-### APIs
-
-- `window.createTreeView`
-- `window.registerTreeDataProvider`
-- `TreeView`
-- `TreeDataProvider`
-
-Refer to [Usage](./USAGE.md) document for more details.
-
-## Running the Sample
-
-- Open this example in VS Code Insiders
-- `npm install`
-- `npm run watch`
-- `F5` to start debugging
-- Node dependencies view is shown in Package explorer view container in Activity bar.
-- FTP file explorer view should be shown in Explorer
+1. 点击右上角加号添加组件
+2. hover 到组件上点击绑定按钮，绑定本地调试目录，将自动启动文件监听进程，请勿关闭
+3. 点击右上角程序启动按钮，启动后将提示是否以跨域模式打开 Chrome，建议打开，定位到待调试的 Orca 或工作台页面
+4. 通过[XSwitch](https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg)插件代理静态资源
+5. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～
