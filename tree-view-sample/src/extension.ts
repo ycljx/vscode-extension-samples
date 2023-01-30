@@ -151,27 +151,40 @@ const handleDeleteEntry = async (node: Dependency) => {
 };
 
 const handleConfigEntry = async (type: string) => {
-	const configPath = path.join(ycPath, `${type}.json`);
-	if (type === 'bzbConfig') {
-		await fs.writeJson(
-			configPath,
-			[
-				'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js',
-				'//localhost:1024/js/index.js',
-			],
-			{ spaces: 2 }
+	if (type === 'openChrome') {
+		const terminal = vscode.window.createTerminal({
+			name: projectName,
+			hideFromUser: true,
+		});
+		terminal.sendText(
+			`open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
+				os.homedir(),
+				'MyChromeDevUserData'
+			)}`
 		);
-	} else if (type === 'orcaPreviewConfig') {
-		await fs.writeJson(
-			configPath,
-			[
-				'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
-				'//localhost:1024/js/index.js',
-			],
-			{ spaces: 2 }
-		);
+	} else {
+		const configPath = path.join(ycPath, `${type}.json`);
+		if (type === 'bzbConfig') {
+			await fs.writeJson(
+				configPath,
+				[
+					'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js',
+					'//localhost:1024/js/index.js',
+				],
+				{ spaces: 2 }
+			);
+		} else if (type === 'orcaPreviewConfig') {
+			await fs.writeJson(
+				configPath,
+				[
+					'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
+					'//localhost:1024/js/index.js',
+				],
+				{ spaces: 2 }
+			);
+		}
+		vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: false });
 	}
-	vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: false });
 };
 
 const handleSettingEntry = async () => {
@@ -179,6 +192,7 @@ const handleSettingEntry = async () => {
 		[
 			{ label: 'Orca预览引擎代理配置', value: 'orcaPreviewConfig' },
 			{ label: 'Orca搭建的工作台页面代理配置', value: 'bzbConfig' },
+			{ label: '打开Chrome（跨域模式）', value: 'openChrome' },
 		],
 		{
 			placeHolder: '请选择要查看的代理配置',
@@ -209,5 +223,8 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand('nodeDependencies.orcaPreviewConfig', () =>
 		handleConfigEntry('orcaPreviewConfig')
+	);
+	vscode.commands.registerCommand('nodeDependencies.openChrome', () =>
+		handleConfigEntry('openChrome')
 	);
 }
