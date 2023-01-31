@@ -116,11 +116,11 @@ const handleStartEntry = async () => {
 				}, 1000);
 				setTimeout(() => {
 					progress.report({ increment: 60, message: '依赖检查中' });
-				}, 2000);
-				return new Promise((r) => setTimeout(r, 4000));
+				}, 3000);
+				return new Promise((r) => setTimeout(r, 5000));
 			}
 		);
-		await new Promise((r) => setTimeout(r, 4000));
+		await new Promise((r) => setTimeout(r, 5000));
 		const pkg = await fs.readJson(pkgPath);
 		if (pkg.version !== oldPkg.version) {
 			vscode.window.showInformationMessage('项目依赖需升级，开始执行依赖安装');
@@ -175,8 +175,8 @@ const handleConfigEntry = async (type: string) => {
 				}, 1000);
 				setTimeout(() => {
 					progress.report({ increment: 60, message: '浏览器启动中' });
-				}, 2000);
-				return new Promise((r) => setTimeout(r, 4000));
+				}, 3000);
+				return new Promise((r) => setTimeout(r, 5000));
 			}
 		);
 	} else {
