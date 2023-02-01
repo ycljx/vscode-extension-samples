@@ -194,6 +194,15 @@ const handleConfigEntry = async (type: string) => {
 				],
 				{ spaces: 2 }
 			);
+		} else if (type === 'orcaConfig') {
+			await fs.writeJson(
+				configPath,
+				[
+					'//(.*)g.alicdn.com/team-orca/orca/(.*)/js/index.js',
+					'//localhost:1024/js/index.js',
+				],
+				{ spaces: 2 }
+			);
 		} else if (type === 'orcaPreviewConfig') {
 			await fs.writeJson(
 				configPath,
@@ -211,6 +220,7 @@ const handleConfigEntry = async (type: string) => {
 const handleSettingEntry = async () => {
 	const selected = await vscode.window.showQuickPick(
 		[
+			{ label: 'Orca代理配置', value: 'orcaConfig' },
 			{ label: 'Orca预览引擎代理配置', value: 'orcaPreviewConfig' },
 			{ label: 'Orca搭建的工作台页面代理配置', value: 'bzbConfig' },
 			{ label: '打开Chrome（跨域模式）', value: 'openChrome' },
@@ -241,6 +251,9 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
 	vscode.commands.registerCommand('nodeDependencies.bzbConfig', () =>
 		handleConfigEntry('bzbConfig')
+	);
+	vscode.commands.registerCommand('nodeDependencies.orcaConfig', () =>
+		handleConfigEntry('orcaConfig')
 	);
 	vscode.commands.registerCommand('nodeDependencies.orcaPreviewConfig', () =>
 		handleConfigEntry('orcaPreviewConfig')
