@@ -66,8 +66,10 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 		const workspaceRoot = this.workspaceRoot;
 
 		if (this.pathExists(packageJsonPath) && workspaceRoot) {
-			const packageJson = fs.readJsonSync(packageJsonPath);
-			const packageLockJson = fs.readJsonSync(packageLockJsonPath);
+			const packageJson = await fs.readJson(packageJsonPath);
+			const packageLockJson = (await fs.pathExists(packageLockJsonPath))
+				? await fs.readJson(packageLockJsonPath)
+				: packageJson;
 
 			const toDep = (moduleName: string, version: string): Dependency => {
 				// if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
@@ -93,7 +95,11 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 			if (packageJson.dependencies) {
 				const linkedDeps = await getLinkedDeps();
 				deps = Object.keys(linkedDeps).map((dep) =>
-					toDep(dep, packageLockJson.dependencies[dep]?.version)
+					toDep(
+						dep,
+						packageLockJson.dependencies[dep]?.version ||
+							packageLockJson.dependencies[dep]
+					)
 				);
 			} else {
 				vscode.window.showWarningMessage('This project has no dependencies');

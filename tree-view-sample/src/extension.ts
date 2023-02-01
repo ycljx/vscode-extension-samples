@@ -62,8 +62,11 @@ const handleEditEntry = async (node: Dependency) => {
 };
 
 const handleAddEntry = async () => {
+	const packageJsonPath = path.join(rootPath, 'package.json');
 	const packageLockJsonPath = path.join(rootPath, 'package-lock.json');
-	const packageLockJson = fs.readJsonSync(packageLockJsonPath);
+	const packageLockJson = (await fs.pathExists(packageLockJsonPath))
+		? await fs.readJson(packageLockJsonPath)
+		: await fs.readJson(packageJsonPath);
 	const linkedDeps = await getLinkedDeps();
 	const restKeys = Object.keys(packageLockJson.dependencies).filter(
 		(key) => key.startsWith('@ali') && !Object.keys(linkedDeps).includes(key)
@@ -78,7 +81,8 @@ const handleAddEntry = async () => {
 		handleEditEntry(
 			new Dependency(
 				selected,
-				packageLockJson.dependencies[selected]?.version,
+				packageLockJson.dependencies[selected]?.version ||
+					packageLockJson.dependencies[selected],
 				vscode.TreeItemCollapsibleState.None
 			)
 		);
