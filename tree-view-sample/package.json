@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -25,7 +25,7 @@
 		"viewsWelcome": [
       {
         "view": "nodeDependencies",
-        "contents": "* 注意事项：当前只适用于Orca、OrcaPreview和Orca搭建的业务应用的调试，请勿用于其他应用的调试！\n* 操作步骤：\n1. 点击右上角加号添加组件\n2. hover到组件上点击绑定按钮，绑定本地调试目录，将自动启动文件监听进程，请勿关闭\n3. 点击右上角程序启动按钮，启动后将提示是否以跨域模式打开Chrome，建议打开，定位到待调试的Orca或工作台页面\n4. 通过[XSwitch](https://chrome.google.com/webstore/detail/xswitch/idkjhjggpffolpidfkikidcokdkdaogg)插件代理静态资源\n5. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～\n[Orca代理配置](command:nodeDependencies.orcaConfig)\n[Orca预览引擎代理配置](command:nodeDependencies.orcaPreviewConfig)\n[Orca搭建的工作台页面代理配置](command:nodeDependencies.bzbConfig)\n[打开Chrome（跨域模式）](command:nodeDependencies.openChrome)"
+        "contents": "* 注意事项：当前只适用于Orca、OrcaPreview和Orca搭建的业务应用的调试，请勿用于其他应用的调试！\n* 操作步骤：\n1. 点击右上角加号添加组件\n2. hover到组件上点击绑定按钮，绑定本地调试目录，将自动启动文件监听进程，请勿关闭\n3. 点击右上角程序启动按钮，启动后将提示是否以跨域模式打开Chrome，建议打开，定位到待调试的Orca或工作台页面\n4. 通过[XSwitch](https://www.yuque.com/jiushen/blog/xswitch-readme)插件代理静态资源\n5. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～\n[Orca代理配置](command:nodeDependencies.orcaConfig)\n[Orca预览引擎代理配置](command:nodeDependencies.orcaPreviewConfig)\n[Orca搭建的工作台页面代理配置](command:nodeDependencies.bzbConfig)\n[打开Chrome（跨域模式）](command:nodeDependencies.openChrome)"
       }
     ],
 		"viewsContainers": {
@@ -151,7 +151,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "rm -f `ls -a|grep -E '\\.vsix'` && vsce package && code --install-extension orca-preview-debug-1.2.2.vsix"
+		"ie": "rm -f `ls -a|grep -E '\\.vsix'` && vsce package && code --install-extension orca-preview-debug-1.2.3.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.1.0",
