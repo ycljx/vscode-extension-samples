@@ -232,6 +232,16 @@ const handleSettingEntry = async () => {
 	selected && handleConfigEntry(selected.value);
 };
 
+const openInNewWindow = async (moduleName: string) => {
+	const linkedDeps = await getLinkedDeps();
+	const fromVal = linkedDeps[moduleName]?.from;
+	if (fromVal) {
+		vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(fromVal), {
+			forceNewWindow: true,
+		});
+	}
+};
+
 export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
 	vscode.commands.registerCommand('nodeDependencies.addEntry', handleAddEntry);
@@ -240,12 +250,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand('nodeDependencies.startEntry', handleStartEntry);
 	vscode.commands.registerCommand('nodeDependencies.settingEntry', handleSettingEntry);
-	// vscode.commands.registerCommand('extension.openPackageOnNpm', (moduleName) =>
-	// 	vscode.commands.executeCommand(
-	// 		'vscode.open',
-	// 		vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)
-	// 	)
-	// );
+	vscode.commands.registerCommand('extension.openInNewWindow', openInNewWindow);
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	// vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);
