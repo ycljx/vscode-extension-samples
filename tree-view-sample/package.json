@@ -2,7 +2,7 @@
 	"name": "orca-preview-debug",
 	"displayName": "Orca Preview Debug",
 	"description": "Orca预览引擎的调试插件",
-	"version": "1.2.4",
+	"version": "1.2.5",
 	"publisher": "yuanchen-ljx",
 	"private": true,
 	"license": "MIT",
@@ -85,6 +85,14 @@
 				}
 			},
 			{
+				"command": "nodeDependencies.openEntry",
+				"title": "打开(open)",
+				"icon": {
+					"light": "resources/light/open.svg",
+					"dark": "resources/dark/open.svg"
+				}
+			},
+			{
 				"command": "nodeDependencies.editEntry",
 				"title": "绑定(link)",
 				"icon": {
@@ -142,6 +150,11 @@
 					"command": "nodeDependencies.editEntry",
 					"when": "view == nodeDependencies && viewItem == dependency",
 					"group": "inline"
+				},
+				{
+					"command": "nodeDependencies.openEntry",
+					"when": "view == nodeDependencies && viewItem == dependency",
+					"group": "inline"
 				}
 			]
 		}
@@ -151,7 +164,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"ie": "rm -f `ls -a|grep -E '\\.vsix'` && vsce package && code --install-extension orca-preview-debug-1.2.4.vsix"
+		"ie": "rm -f `ls -a|grep -E '\\.vsix'` && vsce package && code --install-extension orca-preview-debug-1.2.5.vsix"
 	},
 	"devDependencies": {
 		"@types/fs-extra": "^11.1.0",

@@ -56,8 +56,15 @@ const handleEditEntry = async (node: Dependency) => {
 			from: fromPath,
 		};
 		await setLinkedDeps(linkedDeps);
-		vscode.window.showInformationMessage(`绑定完成，开始监听${node.label}文件变化`);
 		handleDebugEntry(node);
+		const answer = await vscode.window.showInformationMessage(
+			`绑定完成，是否打开组件${node.label}开发目录？`,
+			'是',
+			'否'
+		);
+		if (answer === '是') {
+			handleOpenEntry(node.label);
+		}
 	}
 };
 
@@ -232,13 +239,15 @@ const handleSettingEntry = async () => {
 	selected && handleConfigEntry(selected.value);
 };
 
-const openInNewWindow = async (moduleName: string) => {
+const handleOpenEntry = async (moduleName: string) => {
 	const linkedDeps = await getLinkedDeps();
 	const fromVal = linkedDeps[moduleName]?.from;
 	if (fromVal) {
 		vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(fromVal), {
 			forceNewWindow: true,
 		});
+	} else {
+		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
 	}
 };
 
@@ -250,7 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	vscode.commands.registerCommand('nodeDependencies.startEntry', handleStartEntry);
 	vscode.commands.registerCommand('nodeDependencies.settingEntry', handleSettingEntry);
-	vscode.commands.registerCommand('extension.openInNewWindow', openInNewWindow);
+	vscode.commands.registerCommand('nodeDependencies.openEntry', handleOpenEntry);
 	vscode.commands.registerCommand('nodeDependencies.editEntry', handleEditEntry);
 	// vscode.commands.registerCommand('nodeDependencies.debugEntry', handleDebugEntry);
 	vscode.commands.registerCommand('nodeDependencies.deleteEntry', handleDeleteEntry);

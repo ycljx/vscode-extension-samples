@@ -83,11 +83,11 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 					moduleName,
 					version,
 					vscode.TreeItemCollapsibleState.None,
-					{
-						command: 'extension.openInNewWindow',
-						title: '',
-						arguments: [moduleName],
-					}
+					// {
+					// 	command: 'nodeDependencies.openEntry',
+					// 	title: '',
+					// 	arguments: [moduleName],
+					// }
 				);
 				// }
 			};
