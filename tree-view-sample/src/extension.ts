@@ -63,7 +63,7 @@ const handleEditEntry = async (node: Dependency) => {
 			'否'
 		);
 		if (answer === '是') {
-			handleOpenEntry(node.label);
+			handleOpenEntry(fromVal);
 		}
 	}
 };
@@ -239,9 +239,14 @@ const handleSettingEntry = async () => {
 	selected && handleConfigEntry(selected.value);
 };
 
-const handleOpenEntry = async (moduleName: string) => {
-	const linkedDeps = await getLinkedDeps();
-	const fromVal = linkedDeps[moduleName]?.from;
+const handleOpenEntry = async (nodeOrFromVal: Dependency | string | undefined) => {
+	let fromVal: string | undefined;
+	if (typeof nodeOrFromVal === 'string' || typeof nodeOrFromVal === 'undefined') {
+		fromVal = nodeOrFromVal;
+	} else {
+		const linkedDeps = await getLinkedDeps();
+		fromVal = linkedDeps[nodeOrFromVal.label]?.from;
+	}
 	if (fromVal) {
 		vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(fromVal), {
 			forceNewWindow: true,
