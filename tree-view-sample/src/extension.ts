@@ -63,7 +63,7 @@ const handleEditEntry = async (node: Dependency) => {
 			'否'
 		);
 		if (answer === '是') {
-			handleOpenEntry(fromVal);
+			handleOpenEntry(fromPath);
 		}
 	}
 };
@@ -239,9 +239,9 @@ const handleSettingEntry = async () => {
 	selected && handleConfigEntry(selected.value);
 };
 
-const handleOpenEntry = async (nodeOrFromVal: Dependency | string | undefined) => {
+const handleOpenEntry = async (nodeOrFromVal: Dependency | string) => {
 	let fromVal: string | undefined;
-	if (typeof nodeOrFromVal === 'string' || typeof nodeOrFromVal === 'undefined') {
+	if (typeof nodeOrFromVal === 'string') {
 		fromVal = nodeOrFromVal;
 	} else {
 		const linkedDeps = await getLinkedDeps();
