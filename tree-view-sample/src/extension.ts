@@ -76,7 +76,11 @@ const handleAddEntry = async () => {
 		: await fs.readJson(packageJsonPath);
 	const linkedDeps = await getLinkedDeps();
 	const restKeys = Object.keys(packageLockJson.dependencies).filter(
-		(key) => key.startsWith('@ali') && !Object.keys(linkedDeps).includes(key)
+		(key) =>
+			(key.startsWith('@ali/orca-') ||
+				key.startsWith('@alife/xiaoer-') ||
+				key.startsWith('@ali/cd-')) &&
+			!Object.keys(linkedDeps).includes(key)
 	);
 	const selected = await vscode.window.showQuickPick(restKeys, {
 		placeHolder: '请选择要添加的组件',
