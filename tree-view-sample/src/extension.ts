@@ -137,9 +137,30 @@ const handleStartEntry = async () => {
 		);
 		await new Promise((r) => setTimeout(r, 5000));
 		const pkg = await fs.readJson(pkgPath);
-		if (pkg.version !== oldPkg.version) {
+		// 判断哪些依赖需要升级
+		const deps = pkg.dependencies;
+		const depKeys = Object.keys(deps);
+		const oldDeps = oldPkg.dependencies;
+		const oldDepKeys = Object.keys(oldDeps);
+		const devDeps = pkg.devDependencies;
+		const devDepKeys = Object.keys(devDeps);
+		const oldDevDeps = oldPkg.devDependencies;
+		const oldDevDepKeys = Object.keys(oldDevDeps);
+
+		depKeys.forEach(key => {
+			if ((oldDepKeys.includes(key) && deps[key] !== oldDeps[key]) || !oldDepKeys.includes(key)) {
+				openStr = `${openStr}tnpm update ${key}@${deps[key]} && `;
+			}
+		});
+
+		devDepKeys.forEach(key => {
+			if ((oldDevDepKeys.includes(key) && devDeps[key] !== oldDevDeps[key]) || !oldDevDepKeys.includes(key)) {
+				openStr = `${openStr}tnpm update ${key}@${devDeps[key]} -D && `;
+			}
+		});
+
+		if (openStr.includes('tnpm update')) {
 			vscode.window.showInformationMessage('项目依赖需升级，开始执行依赖安装');
-			openStr = `${openStr}tnpm update && `;
 			await fs.writeJson(oldPkgPath, pkg, { spaces: 2 });
 		}
 		if (answer === '是') {
