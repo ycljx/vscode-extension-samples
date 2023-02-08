@@ -200,8 +200,8 @@ const handleConfigEntry = async (type: string) => {
 			await fs.writeJson(
 				configPath,
 				[
-					'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/js/index.js',
-					'//localhost:1024/js/index.js',
+					'//(.*)g.alicdn.com/bzb-westeros/biz-orca-(.*)/(.*)/(.*)/index.(.*)',
+					'//localhost:1024/$4/index.$5',
 				],
 				{ spaces: 2 }
 			);
@@ -209,8 +209,8 @@ const handleConfigEntry = async (type: string) => {
 			await fs.writeJson(
 				configPath,
 				[
-					'//(.*)g.alicdn.com/team-orca/orca/(.*)/js/index.js',
-					'//localhost:1024/js/index.js',
+					'//(.*)g.alicdn.com/team-orca/orca/(.*)/(.*)/index.(.*)',
+					'//localhost:1024/$3/index.$4',
 				],
 				{ spaces: 2 }
 			);
@@ -218,8 +218,8 @@ const handleConfigEntry = async (type: string) => {
 			await fs.writeJson(
 				configPath,
 				[
-					'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/js/index.js',
-					'//localhost:1024/js/index.js',
+					'//(.*)g.alicdn.com/team-orca/orca-preview/(.*)/(.*)/index.(.*)',
+					'//localhost:1024/$3/index.$4',
 				],
 				{ spaces: 2 }
 			);
