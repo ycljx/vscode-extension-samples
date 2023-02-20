@@ -110,9 +110,8 @@ const handleStartEntry = async () => {
 		'否'
 	);
 	if (answer) {
-		const oldPkg = (await fs.pathExists(oldPkgPath))
-			? await fs.readJson(oldPkgPath)
-			: {};
+		const isOldPkgExist = await fs.pathExists(oldPkgPath);
+		const oldPkg = await fs.readJson(isOldPkgExist ? oldPkgPath : pkgPath);
 		const terminal = vscode.window.createTerminal({
 			name: projectName,
 			hideFromUser: true,
@@ -147,14 +146,20 @@ const handleStartEntry = async () => {
 		const oldDevDeps = oldPkg.devDependencies;
 		const oldDevDepKeys = Object.keys(oldDevDeps);
 
-		depKeys.forEach(key => {
-			if ((oldDepKeys.includes(key) && deps[key] !== oldDeps[key]) || !oldDepKeys.includes(key)) {
+		depKeys.forEach((key) => {
+			if (
+				(oldDepKeys.includes(key) && deps[key] !== oldDeps[key]) ||
+				!oldDepKeys.includes(key)
+			) {
 				openStr = `${openStr}tnpm update ${key}@${deps[key]} && `;
 			}
 		});
 
-		devDepKeys.forEach(key => {
-			if ((oldDevDepKeys.includes(key) && devDeps[key] !== oldDevDeps[key]) || !oldDevDepKeys.includes(key)) {
+		devDepKeys.forEach((key) => {
+			if (
+				(oldDevDepKeys.includes(key) && devDeps[key] !== oldDevDeps[key]) ||
+				!oldDevDepKeys.includes(key)
+			) {
 				openStr = `${openStr}tnpm update ${key}@${devDeps[key]} -D && `;
 			}
 		});
