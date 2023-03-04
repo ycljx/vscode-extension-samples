@@ -117,6 +117,8 @@ const startProject = async (
 	gitPath: string,
 	branchName = 'master'
 ) => {
+	const index = projectPath.lastIndexOf('/');
+	const projectName = projectPath.slice(index + 1);
 	const pkgPath = path.join(projectPath, 'package.json');
 	const depsPath = path.join(projectPath, '.yc/linkedDeps.json');
 	const pkg = await fs.readJson(curPkgPath);
@@ -133,14 +135,23 @@ const startProject = async (
 	}
 
 	if (gitPath) {
-		openStr = `${openStr}tnpx -p @ali/orca-cli orca lk ${depName} && npm start -- --port=1024`;
+		openStr = `${openStr}tnpx -p @ali/orca-cli orca lk ${depName}`;
 		const node = new Dependency(depName);
 		const linkedDeps = await getLinkedDeps(depsPath);
 		linkedDeps[node.label] = {
 			from: curRootPath,
 		};
 		await setLinkedDeps(linkedDeps, depsPath);
-		handleDebugEntry(node, projectPath, openStr);
+		await handleDebugEntry(node, projectPath, openStr);
+		await new Promise((r) => setTimeout(r, 10_000));
+		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
+		curTerminal?.dispose();
+		const terminal = vscode.window.createTerminal({
+			name: projectName,
+			cwd: projectPath,
+		});
+		terminal.show();
+		terminal.sendText('npm start -- --port=1024');
 	} else {
 		openStr = `${openStr}npm start -- --port=1024`;
 		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
