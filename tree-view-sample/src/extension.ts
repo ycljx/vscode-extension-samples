@@ -35,7 +35,7 @@ const handleDebugEntry = async (node: Dependency, projectPath?: string) => {
 		name: node.label,
 		...(projectPath ? { cwd: projectPath } : {}),
 	});
-	terminal.show();
+	!projectPath && terminal.show();
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
 		const name = closedTerminal.name;
@@ -125,19 +125,10 @@ const startProject = async (
 	if (answer) {
 		let openStr = '';
 
-		const isExist = await fs.pathExists(projectPath);
+		const isExist = await fs.pathExists(pkgPath);
 		if (!isExist) {
 			await fs.ensureDir(projectPath);
 			openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i && `;
-
-			const pkg = await fs.readJson(pkgPath);
-			const node = new Dependency(pkg.name);
-			const linkedDeps = await getLinkedDeps(depsPath);
-			linkedDeps[node.label] = {
-				from: curRootPath,
-			};
-			await setLinkedDeps(linkedDeps, depsPath);
-			await handleDebugEntry(node);
 		} else {
 			openStr = `${openStr}git pull && `;
 		}
@@ -160,6 +151,17 @@ const startProject = async (
 		});
 		terminal.show();
 		terminal.sendText(`${openStr}npm start -- --port=1024`);
+
+		if (isExist) {
+			const pkg = await fs.readJson(pkgPath);
+			const node = new Dependency(pkg.name);
+			const linkedDeps = await getLinkedDeps(depsPath);
+			linkedDeps[node.label] = {
+				from: curRootPath,
+			};
+			await setLinkedDeps(linkedDeps, depsPath);
+			handleDebugEntry(node, projectPath);
+		}
 	}
 };
 
