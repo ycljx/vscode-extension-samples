@@ -125,8 +125,8 @@ export class DepNodeProvider implements vscode.TreeDataProvider<Dependency> {
 export class Dependency extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
-		private readonly version: string,
-		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		private readonly version: string = '1.0.0',
+		public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
