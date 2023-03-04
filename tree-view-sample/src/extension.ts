@@ -22,7 +22,11 @@ const GIT_MAP: Record<string, string> = {
 	orcaPreview: 'git@gitlab.alibaba-inc.com:team-orca/orca-preview',
 };
 
-const handleDebugEntry = async (node: Dependency, projectPath?: string, openStr = '') => {
+const handleDebugEntry = async (
+	node: Dependency,
+	projectPath?: string,
+	openStr = `tnpx -p @ali/orca-cli orca lk ${node.label}`
+) => {
 	const aliasPath = projectPath ? path.join(projectPath, 'alias.json') : curAliasPath;
 	const linkedDeps = await getLinkedDeps(
 		projectPath && path.join(projectPath, '.yc/linkedDeps.json')
@@ -37,7 +41,7 @@ const handleDebugEntry = async (node: Dependency, projectPath?: string, openStr 
 		...(projectPath ? { cwd: projectPath } : {}),
 	});
 	terminal.show();
-	terminal.sendText(`${openStr}tnpx -p @ali/orca-cli orca lk ${node.label}`);
+	terminal.sendText(openStr);
 	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
 		const name = closedTerminal.name;
 		const isAliasExist = await fs.pathExists(aliasPath);
@@ -127,9 +131,9 @@ const startProject = async (
 	} else {
 		openStr = `${openStr}git pull && `;
 	}
-	openStr = `${openStr}npm start -- --port=1024`;
 
 	if (gitPath) {
+		openStr = `${openStr}tnpx -p @ali/orca-cli orca lk ${depName} && npm start -- --port=1024`;
 		const node = new Dependency(depName);
 		const linkedDeps = await getLinkedDeps(depsPath);
 		linkedDeps[node.label] = {
@@ -138,6 +142,7 @@ const startProject = async (
 		await setLinkedDeps(linkedDeps, depsPath);
 		handleDebugEntry(node, projectPath, openStr);
 	} else {
+		openStr = `${openStr}npm start -- --port=1024`;
 		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
 		curTerminal?.dispose();
 		const terminal = vscode.window.createTerminal(curProjectName);
