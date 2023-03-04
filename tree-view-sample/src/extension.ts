@@ -13,6 +13,7 @@ import {
 	curProjectName,
 } from './utils';
 
+const curPkgPath = path.join(curRootPath, 'package.json');
 const curAliasPath = path.join(curRootPath, 'alias.json');
 const nodeDependenciesProvider = new DepNodeProvider(curRootPath);
 
@@ -152,8 +153,9 @@ const startProject = async (
 		terminal.show();
 		terminal.sendText(`${openStr}npm start -- --port=1024`);
 
+		// 以物料根目录执行文件监听
 		if (isExist) {
-			const pkg = await fs.readJson(pkgPath);
+			const pkg = await fs.readJson(curPkgPath);
 			const node = new Dependency(pkg.name);
 			const linkedDeps = await getLinkedDeps(depsPath);
 			linkedDeps[node.label] = {
