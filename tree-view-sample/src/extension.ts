@@ -35,7 +35,7 @@ const handleDebugEntry = async (node: Dependency, projectPath?: string) => {
 		name: node.label,
 		...(projectPath ? { cwd: projectPath } : {}),
 	});
-	!projectPath && terminal.show();
+	terminal.show();
 	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
 	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
 		const name = closedTerminal.name;
@@ -233,6 +233,8 @@ const handleConfigEntry = async (type: string) => {
 		);
 	} else {
 		const configPath = path.join(curYcPath, `${type}.json`);
+		const isExist = await fs.pathExists(configPath);
+		!isExist && (await fs.ensureFile(configPath));
 		if (type === 'bzbConfig') {
 			await fs.writeJson(
 				configPath,
@@ -261,7 +263,7 @@ const handleConfigEntry = async (type: string) => {
 				{ spaces: 2 }
 			);
 		}
-		vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: false });
+		vscode.window.showTextDocument(vscode.Uri.file(configPath), { preview: true });
 	}
 };
 
