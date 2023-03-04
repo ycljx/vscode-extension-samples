@@ -22,7 +22,7 @@ const GIT_MAP: Record<string, string> = {
 	orcaPreview: 'git@gitlab.alibaba-inc.com:team-orca/orca-preview',
 };
 
-const handleDebugEntry = async (node: Dependency, projectPath?: string) => {
+const handleDebugEntry = async (node: Dependency, projectPath?: string, openStr = '') => {
 	const aliasPath = projectPath ? path.join(projectPath, 'alias.json') : curAliasPath;
 	const linkedDeps = await getLinkedDeps(
 		projectPath && path.join(projectPath, '.yc/linkedDeps.json')
@@ -37,7 +37,7 @@ const handleDebugEntry = async (node: Dependency, projectPath?: string) => {
 		...(projectPath ? { cwd: projectPath } : {}),
 	});
 	terminal.show();
-	terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${node.label}`);
+	terminal.sendText(`${openStr}tnpx -p @ali/orca-cli orca lk ${node.label}`);
 	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
 		const name = closedTerminal.name;
 		const isAliasExist = await fs.pathExists(aliasPath);
@@ -113,57 +113,36 @@ const startProject = async (
 	gitPath: string,
 	branchName = 'master'
 ) => {
-	const index = projectPath.lastIndexOf('/');
-	const projectName = projectPath.slice(index + 1);
 	const pkgPath = path.join(projectPath, 'package.json');
 	const depsPath = path.join(projectPath, '.yc/linkedDeps.json');
+	const pkg = await fs.readJson(curPkgPath);
+	const depName = pkg.name;
 
-	const answer = await vscode.window.showInformationMessage(
-		'是否需要以跨域模式打开Chrome浏览器？',
-		'是',
-		'否'
-	);
-	if (answer) {
-		let openStr = '';
+	let openStr = '';
 
-		const isExist = await fs.pathExists(pkgPath);
-		if (!isExist) {
-			await fs.ensureDir(projectPath);
-			openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i && `;
-		} else {
-			openStr = `${openStr}git pull && `;
-		}
+	const isExist = await fs.pathExists(pkgPath);
+	if (!isExist) {
+		await fs.ensureDir(projectPath);
+		openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i && `;
+	} else {
+		openStr = `${openStr}git pull && `;
+	}
+	openStr = `${openStr}npm start -- --port=1024`;
 
-		if (answer === '是') {
-			openStr = `${openStr}open -n /Applications/Google\\ Chrome.app --args --disable-web-security --user-data-dir=${path.join(
-				os.homedir(),
-				'MyChromeDevUserData'
-			)} && `;
-		}
-
-		// 先关闭
-		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
+	if (gitPath) {
+		const node = new Dependency(depName);
+		const linkedDeps = await getLinkedDeps(depsPath);
+		linkedDeps[node.label] = {
+			from: curRootPath,
+		};
+		await setLinkedDeps(linkedDeps, depsPath);
+		handleDebugEntry(node, projectPath, openStr);
+	} else {
+		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
 		curTerminal?.dispose();
-
-		// 再重启
-		const terminal = vscode.window.createTerminal({
-			name: projectName,
-			cwd: projectPath,
-		});
+		const terminal = vscode.window.createTerminal(curProjectName);
 		terminal.show();
-		terminal.sendText(`${openStr}npm start -- --port=1024`);
-
-		// 以物料根目录执行文件监听
-		if (isExist) {
-			const pkg = await fs.readJson(curPkgPath);
-			const node = new Dependency(pkg.name);
-			const linkedDeps = await getLinkedDeps(depsPath);
-			linkedDeps[node.label] = {
-				from: curRootPath,
-			};
-			await setLinkedDeps(linkedDeps, depsPath);
-			handleDebugEntry(node, projectPath);
-		}
+		terminal.sendText(openStr);
 	}
 };
 
