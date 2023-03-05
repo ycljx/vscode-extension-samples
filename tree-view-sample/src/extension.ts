@@ -143,7 +143,7 @@ const startProject = async (
 		};
 		await setLinkedDeps(linkedDeps, depsPath);
 		await handleDebugEntry(node, projectPath, openStr);
-		await new Promise((r) => setTimeout(r, 10_000));
+		await new Promise((r) => setTimeout(r, 15_000));
 		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 		curTerminal?.dispose();
 		const terminal = vscode.window.createTerminal({
