@@ -128,7 +128,8 @@ const startProject = async (
 
 	const isExist = await fs.pathExists(pkgPath);
 	if (!isExist) {
-		await fs.emptyDir(projectPath);
+		await fs.remove(projectPath);
+		await fs.ensureDir(projectPath);
 		openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i && `;
 	} else {
 		openStr = `${openStr}git pull && `;
