@@ -58,7 +58,7 @@ const handleDebugEntry = async (
 		}
 	});
 	if (openStr.includes('git clone ')) {
-		await new Promise((r) => setTimeout(r, 180_000));
+		await new Promise((r) => setTimeout(r, 160_000));
 	}
 	return terminal;
 };
