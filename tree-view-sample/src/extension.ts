@@ -28,11 +28,11 @@ const handleDebugEntry = async (
 	openStr = `tnpx -p @ali/orca-cli orca lk ${node.label}`
 ) => {
 	const aliasPath = projectPath ? path.join(projectPath, 'alias.json') : curAliasPath;
-	const linkedDeps = await getLinkedDeps(
-		projectPath && path.join(projectPath, '.yc/linkedDeps.json')
-	);
-	if (!linkedDeps[node.label]?.from) {
-		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
+	if (!projectPath) {
+		const linkedDeps = await getLinkedDeps();
+		if (!linkedDeps[node.label]?.from) {
+			vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
+		}
 	}
 	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
 	curTerminal?.dispose();
@@ -58,7 +58,7 @@ const handleDebugEntry = async (
 		}
 	});
 	if (openStr.includes('git clone ')) {
-		await new Promise((r) => setTimeout(r, 300_000));
+		await new Promise((r) => setTimeout(r, 180_000));
 	}
 	return terminal;
 };
@@ -147,7 +147,7 @@ const startProject = async (
 		const terminal = await handleDebugEntry(node, projectPath, openStr);
 		await setLinkedDeps(linkedDeps, depsPath);
 		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${depName}`);
-		await new Promise((r) => setTimeout(r, 12_000));
+		await new Promise((r) => setTimeout(r, 15_000));
 		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 		curTerminal?.dispose();
 		const terminal1 = vscode.window.createTerminal({
