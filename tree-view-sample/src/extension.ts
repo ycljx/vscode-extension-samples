@@ -57,6 +57,10 @@ const handleDebugEntry = async (
 			await fs.remove(aliasPath);
 		}
 	});
+	if (openStr.includes('git clone ')) {
+		await new Promise((r) => setTimeout(r, 300_000));
+	}
+	return terminal;
 };
 
 const handleEditEntry = async (node: Dependency) => {
@@ -128,33 +132,32 @@ const startProject = async (
 
 	const isExist = await fs.pathExists(pkgPath);
 	if (!isExist) {
-		await fs.remove(projectPath);
-		await fs.ensureDir(projectPath);
-		openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i && `;
+		await fs.emptyDir(projectPath);
+		openStr = `${openStr}git clone -b ${branchName} ${gitPath} ${projectPath} && tnpm i`;
 	} else {
-		openStr = `${openStr}git pull && `;
+		openStr = `${openStr}git pull`;
 	}
 
 	if (gitPath) {
-		openStr = `${openStr}tnpx -p @ali/orca-cli orca lk ${depName}`;
 		const node = new Dependency(depName);
 		const linkedDeps = await getLinkedDeps(depsPath);
 		linkedDeps[node.label] = {
 			from: curRootPath,
 		};
+		const terminal = await handleDebugEntry(node, projectPath, openStr);
 		await setLinkedDeps(linkedDeps, depsPath);
-		await handleDebugEntry(node, projectPath, openStr);
-		await new Promise((r) => setTimeout(r, 15_000));
+		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${depName}`);
+		await new Promise((r) => setTimeout(r, 12_000));
 		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 		curTerminal?.dispose();
-		const terminal = vscode.window.createTerminal({
+		const terminal1 = vscode.window.createTerminal({
 			name: projectName,
 			cwd: projectPath,
 		});
-		terminal.show();
-		terminal.sendText('npm start -- --port=1024');
+		terminal1.show();
+		terminal1.sendText('npm start -- --port=1024');
 	} else {
-		openStr = `${openStr}npm start -- --port=1024`;
+		openStr = `${openStr} && npm start -- --port=1024`;
 		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
 		curTerminal?.dispose();
 		const terminal = vscode.window.createTerminal(curProjectName);
