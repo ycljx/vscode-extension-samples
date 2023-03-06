@@ -147,7 +147,7 @@ const startProject = async (
 		const terminal = await handleDebugEntry(node, projectPath, openStr);
 		await setLinkedDeps(linkedDeps, depsPath);
 		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${depName}`);
-		await new Promise((r) => setTimeout(r, 15_000));
+		await new Promise((r) => setTimeout(r, 20_000));
 		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 		curTerminal?.dispose();
 		const terminal1 = vscode.window.createTerminal({
