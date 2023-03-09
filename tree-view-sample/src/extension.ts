@@ -13,6 +13,12 @@ import {
 	curProjectName,
 } from './utils';
 
+interface CurObj {
+	curRootPath: string;
+	curPkgPath: string;
+	curProjectName?: string;
+}
+
 const curPkgPath = path.join(curRootPath, 'package.json');
 const curAliasPath = path.join(curRootPath, 'alias.json');
 const nodeDependenciesProvider = new DepNodeProvider(curRootPath);
@@ -119,7 +125,8 @@ const handleAddEntry = async () => {
 const startProject = async (
 	projectPath: string,
 	gitPath: string,
-	branchName = 'master'
+	branchName = 'master',
+	{ curRootPath, curPkgPath, curProjectName }: CurObj
 ) => {
 	const index = projectPath.lastIndexOf('/');
 	const projectName = projectPath.slice(index + 1);
@@ -167,7 +174,30 @@ const startProject = async (
 };
 
 const handleStartEntry = async () => {
-	const selected = await vscode.window.showQuickPick(
+	const isPkgExist = await fs.pathExists(curPkgPath);
+	const curObj = { curRootPath, curPkgPath, curProjectName };
+	if (!isPkgExist) {
+		const comps = [];
+		const files = await fs.readdir(curRootPath);
+		for (let i = 0; i < files.length; i++) {
+			const fileName = files[i];
+			const stat = await fs.lstat(path.join(curRootPath, fileName));
+			if (stat.isDirectory()) {
+				comps.push(fileName);
+			}
+		}
+		const selected = await vscode.window.showQuickPick(comps, {
+			placeHolder: '请选择要调试的组件',
+		});
+		if (selected) {
+			curObj.curRootPath = path.join(curRootPath, selected);
+			curObj.curPkgPath = path.join(curObj.curRootPath, 'package.json');
+			curObj.curProjectName = selected;
+		} else {
+			return;
+		}
+	}
+	const selected1 = await vscode.window.showQuickPick(
 		[
 			{ label: 'Orca资源', value: 'orca' },
 			{ label: 'Orca Preview资源', value: 'orcaPreview' },
@@ -178,16 +208,17 @@ const handleStartEntry = async () => {
 			placeHolder: '请选择资源构建的环境',
 		}
 	);
-	if (selected) {
+	if (selected1) {
 		let tempPath = curRootPath;
-		if (selected.value !== 'current') {
+		if (selected1.value !== 'current') {
 			const rootDir = path.join(os.homedir(), 'orcaDebug');
-			tempPath = path.join(rootDir, selected.value);
+			tempPath = path.join(rootDir, selected1.value);
 		}
 		startProject(
 			tempPath,
-			GIT_MAP[selected.value],
-			selected.value === 'orcaPreview' ? 'v2-pre' : 'master'
+			GIT_MAP[selected1.value],
+			selected1.value === 'orcaPreview' ? 'v2-pre' : 'master',
+			curObj
 		);
 	}
 };
