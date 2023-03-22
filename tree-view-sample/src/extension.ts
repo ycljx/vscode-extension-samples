@@ -108,7 +108,8 @@ const handleAddEntry = async () => {
 		(key) =>
 			(key.startsWith('@ali/orca-') ||
 				key.startsWith('@alife/xiaoer-') ||
-				key.startsWith('@ali/cd-')) &&
+				key.startsWith('@ali/cd-') ||
+				key.startsWith('@alife/material-scene-')) &&
 			!Object.keys(linkedDeps).includes(key)
 	);
 	const selected = await vscode.window.showQuickPick(restKeys, {
