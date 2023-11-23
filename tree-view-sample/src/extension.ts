@@ -20,7 +20,6 @@ interface CurObj {
 }
 
 const curPkgPath = path.join(curRootPath, 'package.json');
-const curAliasPath = path.join(curRootPath, 'alias.json');
 const nodeDependenciesProvider = new DepNodeProvider(curRootPath);
 
 const GIT_MAP: Record<string, string> = {
@@ -30,26 +29,31 @@ const GIT_MAP: Record<string, string> = {
 
 const handleDebugEntry = async (
 	node: Dependency,
-	projectPath?: string,
 	openStr = `tnpx -p @ali/orca-cli orca lk ${node.label}`
 ) => {
-	const aliasPath = projectPath ? path.join(projectPath, 'alias.json') : curAliasPath;
-	if (!projectPath) {
-		const linkedDeps = await getLinkedDeps();
-		if (!linkedDeps[node.label]?.from) {
-			vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
-		}
+	const linkedDeps = await getLinkedDeps(node.curLinkedDepsPath);
+	if (!node.projectPath || !linkedDeps[node.label]?.from) {
+		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
+		return;
 	}
+	const aliasPath = path.join(node.projectPath, 'alias.json');
+	const pkgPath = path.join(node.projectPath, 'package.json');
+	const ycPath = path.join(node.projectPath, '.yc');
 	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
 	curTerminal?.dispose();
 	const terminal = vscode.window.createTerminal({
 		name: node.label,
-		...(projectPath ? { cwd: projectPath } : {}),
+		cwd: node.projectPath,
 	});
 	terminal.show();
 	terminal.sendText(openStr);
 	vscode.window.onDidCloseTerminal(async (closedTerminal) => {
 		const name = closedTerminal.name;
+		const pkg = await fs.readJson(pkgPath);
+		if (pkg.dependencies[name] === 'new') {
+			delete pkg.dependencies[name];
+			await fs.writeJson(pkgPath, pkg, { spaces: 2 });
+		}
 		const isAliasExist = await fs.pathExists(aliasPath);
 		const alias = isAliasExist ? await fs.readJson(aliasPath) : {};
 		delete alias[name];
@@ -59,8 +63,12 @@ const handleDebugEntry = async (
 		}
 		if (Object.keys(alias).length) {
 			await fs.writeJson(aliasPath, alias, { spaces: 2 });
+			delete linkedDeps[name];
+			await setLinkedDeps(linkedDeps, node.curLinkedDepsPath);
+			await fs.remove(path.join(ycPath, name));
 		} else {
 			await fs.remove(aliasPath);
+			await fs.remove(ycPath);
 		}
 	});
 	if (openStr.includes('git clone ')) {
@@ -70,7 +78,7 @@ const handleDebugEntry = async (
 };
 
 const handleEditEntry = async (node: Dependency) => {
-	const linkedDeps = await getLinkedDeps();
+	const linkedDeps = await getLinkedDeps(node.curLinkedDepsPath);
 	const fromVal = linkedDeps[node.label]?.from;
 	const folderUris = await vscode.window.showOpenDialog({
 		defaultUri: vscode.Uri.parse(fromVal || path.join(os.homedir(), 'Desktop')),
@@ -84,7 +92,7 @@ const handleEditEntry = async (node: Dependency) => {
 		linkedDeps[node.label] = {
 			from: fromPath,
 		};
-		await setLinkedDeps(linkedDeps);
+		await setLinkedDeps(linkedDeps, node.curLinkedDepsPath);
 		handleDebugEntry(node);
 		const answer = await vscode.window.showInformationMessage(
 			`绑定完成，是否打开组件${node.label}开发目录？`,
@@ -98,28 +106,84 @@ const handleEditEntry = async (node: Dependency) => {
 };
 
 const handleAddEntry = async () => {
-	const packageJsonPath = path.join(curRootPath, 'package.json');
-	const packageLockJsonPath = path.join(curRootPath, 'package-lock.json');
+	const isPkgExist = await fs.pathExists(curPkgPath);
+	const curObj = { curRootPath, curPkgPath };
+	if (!isPkgExist) {
+		const comps = [];
+		const files = await fs.readdir(curRootPath);
+		for (let i = 0; i < files.length; i++) {
+			const fileName = files[i];
+			const stat = await fs.lstat(path.join(curRootPath, fileName));
+			if (stat.isDirectory()) {
+				comps.push(fileName);
+			}
+		}
+		const selected = await vscode.window.showQuickPick(comps, {
+			placeHolder: '请选择项目',
+		});
+		if (selected) {
+			curObj.curRootPath = path.join(curRootPath, selected);
+			curObj.curPkgPath = path.join(curObj.curRootPath, 'package.json');
+		} else {
+			return;
+		}
+	}
+
+	const curLinkedDepsPath = path.join(curObj.curRootPath, '.yc/linkedDeps.json');
+	const packageLockJsonPath = path.join(curObj.curRootPath, 'package-lock.json');
 	const packageLockJson = (await fs.pathExists(packageLockJsonPath))
 		? await fs.readJson(packageLockJsonPath)
-		: await fs.readJson(packageJsonPath);
-	const linkedDeps = await getLinkedDeps();
-	const restKeys = Object.keys(packageLockJson.dependencies).filter(
-		(key) =>
-			(key.startsWith('@ali/orca-') ||
-				key.startsWith('@alife/xiaoer-') ||
-				key.startsWith('@ali/cd-') ||
-				key.startsWith('@alife/material-scene-')) &&
-			!Object.keys(linkedDeps).includes(key)
-	);
-	const selected = await vscode.window.showQuickPick(restKeys, {
-		placeHolder: '请选择要添加的组件',
+		: await fs.readJson(curObj.curPkgPath);
+	const linkedDeps = await getLinkedDeps(curLinkedDepsPath);
+	const selected = await vscode.window.showQuickPick(['已有组件', '新组件'], {
+		placeHolder: '请选择添加方式',
 	});
-	if (selected) {
-		linkedDeps[selected] = {};
-		await setLinkedDeps(linkedDeps);
-		nodeDependenciesProvider.refresh();
-		handleEditEntry(new Dependency(selected));
+
+	if (selected === '已有组件') {
+		const restKeys = Object.keys(packageLockJson.dependencies).filter(
+			(key) =>
+				(key.startsWith('@ali/orca-') ||
+					key.startsWith('@alife/xiaoer-') ||
+					key.startsWith('@ali/cd-') ||
+					key.startsWith('@alife/material-scene-')) &&
+				!Object.keys(linkedDeps).includes(key)
+		);
+		const selected = await vscode.window.showQuickPick(restKeys, {
+			placeHolder: '请选择要添加的组件',
+		});
+		if (selected) {
+			linkedDeps[selected] = {};
+			await setLinkedDeps(linkedDeps, curLinkedDepsPath);
+			nodeDependenciesProvider.refresh(curObj.curRootPath, curLinkedDepsPath);
+			handleEditEntry(
+				new Dependency(selected, undefined, undefined, undefined, {
+					projectPath: curObj.curRootPath,
+					curLinkedDepsPath,
+				})
+			);
+		}
+	} else if (selected === '新组件') {
+		const selected = await vscode.window.showQuickPick(
+			['@ali/orca-', '@alife/xiaoer-', '@ali/cd-', '@alife/material-scene-'],
+			{ placeHolder: '请选择组件前缀' }
+		);
+		if (selected) {
+			const inputStr = await vscode.window.showInputBox({
+				placeHolder: '请输入组件名称',
+			});
+			if (inputStr) {
+				const name = selected + inputStr;
+				linkedDeps[name] = {};
+				await setLinkedDeps(linkedDeps, curLinkedDepsPath);
+				nodeDependenciesProvider.refresh(curObj.curRootPath, curLinkedDepsPath);
+				handleEditEntry(
+					new Dependency(name, undefined, undefined, undefined, {
+						projectPath: curObj.curRootPath,
+						curLinkedDepsPath,
+					})
+				);
+			}
+		}
 	}
 };
 
@@ -147,14 +211,17 @@ const startProject = async (
 	}
 
 	if (gitPath) {
-		const node = new Dependency(depName);
+		const node = new Dependency(depName, undefined, undefined, undefined, {
+			projectPath,
+			curLinkedDepsPath: depsPath,
+		});
 		const linkedDeps = await getLinkedDeps(depsPath);
 		linkedDeps[node.label] = {
 			from: curRootPath,
 		};
-		const terminal = await handleDebugEntry(node, projectPath, openStr);
+		const terminal = await handleDebugEntry(node, openStr);
 		await setLinkedDeps(linkedDeps, depsPath);
-		terminal.sendText(`tnpx -p @ali/orca-cli orca lk ${depName}`);
+		terminal?.sendText(`tnpx -p @ali/orca-cli orca lk ${depName}`);
 		await new Promise((r) => setTimeout(r, 25_000));
 		const curTerminal = vscode.window.terminals.find((t) => t.name === projectName);
 		curTerminal?.dispose();
@@ -168,7 +235,10 @@ const startProject = async (
 		openStr = `${openStr} && npm start -- --port=1024`;
 		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
 		curTerminal?.dispose();
-		const terminal = vscode.window.createTerminal(curProjectName);
+		const terminal = vscode.window.createTerminal({
+			name: curProjectName,
+			cwd: projectPath,
+		});
 		terminal.show();
 		terminal.sendText(openStr);
 	}
@@ -188,7 +258,7 @@ const handleStartEntry = async () => {
 			}
 		}
 		const selected = await vscode.window.showQuickPick(comps, {
-			placeHolder: '请选择要调试的组件',
+			placeHolder: '请选择要调试的项目',
 		});
 		if (selected) {
 			curObj.curRootPath = path.join(curRootPath, selected);
@@ -210,7 +280,7 @@ const handleStartEntry = async () => {
 		}
 	);
 	if (selected1) {
-		let tempPath = curRootPath;
+		let tempPath = curObj.curRootPath;
 		if (selected1.value !== 'current') {
 			const rootDir = path.join(os.homedir(), 'orcaDebug');
 			tempPath = path.join(rootDir, selected1.value);
@@ -225,14 +295,14 @@ const handleStartEntry = async () => {
 };
 
 const handleDeleteEntry = async (node: Dependency) => {
-	const linkedDeps = await getLinkedDeps();
+	const linkedDeps = await getLinkedDeps(node.curLinkedDepsPath);
 	if (linkedDeps[node.label]) {
 		delete linkedDeps[node.label];
 	}
-	await setLinkedDeps(linkedDeps);
+	await setLinkedDeps(linkedDeps, node.curLinkedDepsPath);
 	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
 	curTerminal?.dispose();
-	nodeDependenciesProvider.refresh();
+	nodeDependenciesProvider.refresh(node.projectPath, node.curLinkedDepsPath);
 };
 
 const handleConfigEntry = async (type: string) => {
@@ -320,7 +390,7 @@ const handleOpenEntry = async (nodeOrFromVal: Dependency | string) => {
 	if (typeof nodeOrFromVal === 'string') {
 		fromVal = nodeOrFromVal;
 	} else {
-		const linkedDeps = await getLinkedDeps();
+		const linkedDeps = await getLinkedDeps(nodeOrFromVal.curLinkedDepsPath);
 		fromVal = linkedDeps[nodeOrFromVal.label]?.from;
 	}
 	if (fromVal) {
