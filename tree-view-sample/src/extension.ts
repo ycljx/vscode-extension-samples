@@ -144,6 +144,7 @@ const handleAddEntry = async () => {
 			(key) =>
 				(key.startsWith('@ali/orca-') ||
 					key.startsWith('@alife/xiaoer-') ||
+					key.startsWith('@alife/copilot-') ||
 					key.startsWith('@ali/cd-') ||
 					key.startsWith('@alife/material-scene-')) &&
 				!Object.keys(linkedDeps).includes(key)
@@ -164,7 +165,13 @@ const handleAddEntry = async () => {
 		}
 	} else if (selected === '新组件') {
 		const selected = await vscode.window.showQuickPick(
-			['@ali/orca-', '@alife/xiaoer-', '@ali/cd-', '@alife/material-scene-'],
+			[
+				'@ali/orca-',
+				'@alife/xiaoer-',
+				'@alife/copilot-',
+				'@ali/cd-',
+				'@alife/material-scene-',
+			],
 			{ placeHolder: '请选择组件前缀' }
 		);
 		if (selected) {
