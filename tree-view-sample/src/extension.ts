@@ -70,6 +70,7 @@ const handleDebugEntry = async (
 			await fs.remove(aliasPath);
 			await fs.remove(ycPath);
 		}
+		nodeDependenciesProvider.refresh(node.projectPath, node.curLinkedDepsPath);
 	});
 	if (openStr.includes('git clone ')) {
 		await new Promise((r) => setTimeout(r, 160_000));
@@ -302,14 +303,8 @@ const handleStartEntry = async () => {
 };
 
 const handleDeleteEntry = async (node: Dependency) => {
-	const linkedDeps = await getLinkedDeps(node.curLinkedDepsPath);
-	if (linkedDeps[node.label]) {
-		delete linkedDeps[node.label];
-	}
-	await setLinkedDeps(linkedDeps, node.curLinkedDepsPath);
 	const curTerminal = vscode.window.terminals.find((t) => t.name === node.label);
 	curTerminal?.dispose();
-	nodeDependenciesProvider.refresh(node.projectPath, node.curLinkedDepsPath);
 };
 
 const handleConfigEntry = async (type: string) => {
