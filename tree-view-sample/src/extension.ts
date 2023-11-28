@@ -299,7 +299,7 @@ const handleStartEntry = async () => {
 			{ label: 'Orca Preview资源', value: 'orcaPreview' },
 			{ label: 'Orca Next Preview资源', value: 'orcaNextPreview' },
 			{ label: 'Orca Next Card Preview资源', value: 'orcaNextCardPreview' },
-			// { label: 'Orca搭建的业务应用资源', value: 'bizOrca' },
+			{ label: '关联本地项目', value: 'local' },
 			{ label: '当前项目资源', value: 'current' },
 		],
 		{
@@ -309,8 +309,20 @@ const handleStartEntry = async () => {
 	if (selected1) {
 		let tempPath = curObj.curRootPath;
 		if (selected1.value !== 'current') {
-			const rootDir = path.join(os.homedir(), 'orcaDebug');
-			tempPath = path.join(rootDir, selected1.value);
+			if (selected1.value === 'local') {
+				const folderUris = await vscode.window.showOpenDialog({
+					defaultUri: vscode.Uri.parse(path.join(os.homedir(), 'Desktop')),
+					canSelectFolders: true,
+					canSelectFiles: false,
+					canSelectMany: false,
+					openLabel: '确认项目根目录',
+				});
+				if (!folderUris) return;
+				tempPath = folderUris[0].path;
+			} else {
+				const rootDir = path.join(os.homedir(), 'orcaDebug');
+				tempPath = path.join(rootDir, selected1.value);
+			}
 		}
 		startProject(
 			tempPath,
