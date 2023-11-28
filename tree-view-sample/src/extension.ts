@@ -23,8 +23,21 @@ const curPkgPath = path.join(curRootPath, 'package.json');
 const nodeDependenciesProvider = new DepNodeProvider(curRootPath);
 
 const GIT_MAP: Record<string, string> = {
-	orca: 'git@gitlab.alibaba-inc.com:team-orca/orca',
 	orcaPreview: 'git@gitlab.alibaba-inc.com:team-orca/orca-preview',
+	orcaNextPreview: 'git@gitlab.alibaba-inc.com:team-orca/orca-next-preview.git',
+	orcaNextCardPreview: 'git@gitlab.alibaba-inc.com:team-orca/orca-next-card-preview.git',
+};
+
+const BRANCH_MAP: Record<string, string> = {
+	orcaPreview: 'v2-pre',
+	orcaNextPreview: 'feat/init',
+	orcaNextCardPreview: 'feat/init',
+};
+
+const PORT_MAP: Record<string, number> = {
+	orcaPreview: 1024,
+	orcaNextPreview: 1026,
+	orcaNextCardPreview: 1025,
 };
 
 const handleDebugEntry = async (
@@ -32,7 +45,11 @@ const handleDebugEntry = async (
 	openStr = `tnpx -p @ali/orca-cli orca lk ${node.label}`
 ) => {
 	const linkedDeps = await getLinkedDeps(node.curLinkedDepsPath);
-	if (!node.projectPath || !linkedDeps[node.label]?.from) {
+	if (!node.projectPath) {
+		vscode.window.showWarningMessage('未指定项目根目录');
+		return;
+	}
+	if (!linkedDeps[node.label]?.from && !node.projectPath.includes('/orcaDebug/')) {
 		vscode.window.showWarningMessage('请先绑定该调试组件的根目录');
 		return;
 	}
@@ -199,6 +216,7 @@ const startProject = async (
 	projectPath: string,
 	gitPath: string,
 	branchName = 'master',
+	port = 1024,
 	{ curRootPath, curPkgPath, curProjectName }: CurObj
 ) => {
 	const index = projectPath.lastIndexOf('/');
@@ -238,9 +256,9 @@ const startProject = async (
 			cwd: projectPath,
 		});
 		terminal1.show();
-		terminal1.sendText('npm start -- --port=1024');
+		terminal1.sendText(`npm start -- --port=${port}`);
 	} else {
-		openStr = `${openStr} && npm start -- --port=1024`;
+		openStr = `${openStr} && npm start -- --port=${port}`;
 		const curTerminal = vscode.window.terminals.find((t) => t.name === curProjectName);
 		curTerminal?.dispose();
 		const terminal = vscode.window.createTerminal({
@@ -278,8 +296,9 @@ const handleStartEntry = async () => {
 	}
 	const selected1 = await vscode.window.showQuickPick(
 		[
-			{ label: 'Orca资源', value: 'orca' },
 			{ label: 'Orca Preview资源', value: 'orcaPreview' },
+			{ label: 'Orca Next Preview资源', value: 'orcaNextPreview' },
+			{ label: 'Orca Next Card Preview资源', value: 'orcaNextCardPreview' },
 			// { label: 'Orca搭建的业务应用资源', value: 'bizOrca' },
 			{ label: '当前项目资源', value: 'current' },
 		],
@@ -296,7 +315,8 @@ const handleStartEntry = async () => {
 		startProject(
 			tempPath,
 			GIT_MAP[selected1.value],
-			selected1.value === 'orcaPreview' ? 'v2-pre' : 'master',
+			BRANCH_MAP[selected1.value],
+			PORT_MAP[selected1.value],
 			curObj
 		);
 	}

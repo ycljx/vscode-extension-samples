@@ -9,3 +9,17 @@
 3. 点击右上角程序启动按钮，启动后将提示是否以跨域模式打开 Chrome，建议打开，定位到待调试的 Orca 或工作台页面
 4. 通过[XSwitch](https://www.yuque.com/jiushen/blog/xswitch-readme)插件代理静态资源
 5. 上述配置完成后，在绑定的本地组件目录下开发组件就会实时渲染到线上页面啦～
+
+### 参考配置：
+
+alias配置：请将插件生成的alias.json在项目根目录下的工程文件中引用，参考如下：
+```js
+// build.config.js
+const fs = require('fs');
+const aliasPath = './alias.json';
+const isExist = fs.existsSync(aliasPath);
+
+module.exports = {
+  ...(process.env.NODE_ENV === 'development' && isExist ? { alias: require(aliasPath) } : {}),
+}
+```
